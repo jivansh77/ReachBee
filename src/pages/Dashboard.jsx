@@ -1,5 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RiUserLine, RiBarChartBoxLine, RiRocketLine, RiMoneyDollarCircleLine, RiFlag2Line } from 'react-icons/ri';
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { 
+  UsersIcon, 
+  ChartBarIcon, 
+  BanknotesIcon, 
+  BuildingOfficeIcon 
+} from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
   const [goals] = useState([
@@ -32,11 +40,51 @@ export default function Dashboard() {
     }
   ]);
 
+  const [businessData, setBusinessData] = useState(null);
+
+  useEffect(() => {
+    const fetchBusinessData = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setBusinessData(userDoc.data().businessProfile);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching business data:', error);
+      }
+    };
+
+    fetchBusinessData();
+  }, []);
+
   const stats = [
-    { name: 'Active Campaigns', value: '12', change: '+2.5%', icon: RiRocketLine },
-    { name: 'Target Audience Reach', value: '2.4M', change: '+15.3%', icon: RiUserLine },
-    { name: 'Conversion Rate', value: '3.2%', change: '+4.1%', icon: RiBarChartBoxLine },
-    { name: 'ROI', value: '287%', change: '+12.3%', icon: RiMoneyDollarCircleLine },
+    {
+      name: 'Industry',
+      value: businessData?.industry || 'Not Specified',
+      icon: BuildingOfficeIcon,
+      change: 'Current Sector'
+    },
+    {
+      name: 'Target Audience',
+      value: businessData?.targetAudience || 'Not Specified',
+      icon: UsersIcon,
+      change: 'Primary Focus'
+    },
+    {
+      name: 'Monthly Traffic',
+      value: businessData?.monthlyWebTraffic || 'Not Specified',
+      icon: ChartBarIcon,
+      change: 'Current Volume'
+    },
+    {
+      name: 'Marketing Budget',
+      value: businessData?.marketingBudget || 'Not Specified',
+      icon: BanknotesIcon,
+      change: 'Monthly Budget'
+    }
   ];
 
   const campaigns = [

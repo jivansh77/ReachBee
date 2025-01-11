@@ -14,7 +14,9 @@ const BusinessForm = () => {
     targetAudience: '',
     marketingGoals: '',
     socialMediaPresence: [],
-    businessDescription: ''
+    businessDescription: '',
+    monthlyWebTraffic: '',
+    marketingBudget: ''
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -244,6 +246,49 @@ const BusinessForm = () => {
                         <span>{platform.name}</span>
                       </label>
                     ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Monthly Website Traffic</span>
+                    </label>
+                    <select
+                      name="monthlyWebTraffic"
+                      value={formData.monthlyWebTraffic}
+                      onChange={handleInputChange}
+                      className="select select-bordered"
+                      required
+                    >
+                      <option value="">Select Range</option>
+                      <option value="0-1000">0 - 1,000 visitors</option>
+                      <option value="1001-5000">1,001 - 5,000 visitors</option>
+                      <option value="5001-10000">5,001 - 10,000 visitors</option>
+                      <option value="10001-50000">10,001 - 50,000 visitors</option>
+                      <option value="50001-100000">50,001 - 100,000 visitors</option>
+                      <option value="100000+">100,000+ visitors</option>
+                    </select>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Monthly Marketing Budget</span>
+                    </label>
+                    <select
+                      name="marketingBudget"
+                      value={formData.marketingBudget}
+                      onChange={handleInputChange}
+                      className="select select-bordered"
+                      required
+                    >
+                      <option value="">Select Range</option>
+                      <option value="0-10000">₹0 - ₹10,000</option>
+                      <option value="10001-50000">₹10,001 - ₹50,000</option>
+                      <option value="50001-100000">₹50,001 - ₹1,00,000</option>
+                      <option value="100001-500000">₹1,00,001 - ₹5,00,000</option>
+                      <option value="500000+">₹5,00,000+</option>
+                    </select>
                   </div>
                 </div>
 

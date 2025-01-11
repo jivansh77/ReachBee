@@ -32,7 +32,7 @@ export default function Sidebar() {
               alt="Logo" 
               className="h-20 w-auto mb-7"
             />
-            <h2 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#efa675] to-[#fec76f]">Company</h2>
+            <h2 className="text-2xl font-extrabold text-white">Company</h2>
           </Link>
           <nav>
             <ul className="space-y-2">

@@ -1,80 +1,67 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
-import {FaFileAlt, FaChartBar, FaBars, FaBrain } from 'react-icons/fa'
+import { Link, useLocation } from 'react-router-dom'
+import { 
+  RiDashboardLine, 
+  RiGroupLine, 
+  RiPencilRulerLine,
+  RiRocketLine,
+  RiBarChartBoxLine
+} from 'react-icons/ri';
 
 export default function Sidebar() {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const location = useLocation();
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: RiDashboardLine },
+    { name: 'Audience Insights', href: '/audience-insights', icon: RiGroupLine },
+    { name: 'Content Studio', href: '/content-studio', icon: RiPencilRulerLine },
+    { name: 'Campaign Builder', href: '/campaign-builder', icon: RiRocketLine },
+    { name: 'Analytics', href: '/analytics', icon: RiBarChartBoxLine },
+  ];
 
   return (
-    <>
-      {/* Mobile Toggle Button */}
-      <button 
-        onClick={toggleSidebar} 
-        className="lg:hidden fixed top-4 left-4 z-20 p-2 rounded-md bg-gray-800 text-[#69c1cb]"
-      >
-        {!isOpen && <FaBars size={24} />}
-      </button>
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed top-0 left-0 h-full w-64 bg-gray-800 text-[#69c1cb] transform transition-transform duration-300 ease-in-out z-10
-        lg:translate-x-0 lg:static
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="p-6">
-          <Link to="/" className="flex items-center gap-1 cursor-pointer">
-            <img 
-              src="/logo.png" 
-              alt="Logo" 
-              className="h-20 w-auto mb-7"
-            />
-            <h2 className="text-2xl font-extrabold text-white">Company</h2>
-          </Link>
-          <nav>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/documents" className="flex items-center py-2 px-4 rounded hover:bg-gray-700 transition duration-150 ease-in-out text-[#69c1cb] font-semibold">
-                  <FaFileAlt className="mr-3 text-[#69c1cb]" />
-                  Documents
-                </Link>
-              </li>
-              <li>
-                <Link to="/Memory" className="flex items-center py-2 px-4 rounded hover:bg-gray-700 transition duration-150 ease-in-out text-[#69c1cb] font-semibold">
-                  <FaBrain className="mr-3 text-[#69c1cb]" />
-                  Study Tools
-                </Link>
-              </li>
-              <li>
-                <Link to="/results" className="flex items-center py-2 px-4 rounded hover:bg-gray-700 transition duration-150 ease-in-out text-[#69c1cb] font-semibold">
-                  <FaChartBar className="mr-3 text-[#69c1cb]" />
-                  Results
-                </Link>
-              </li>
-            </ul>
-          </nav>
+    <div className="w-64 bg-base-200 text-base-content h-screen">
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-center h-16 px-4">
+          <h2 className="text-xl font-bold">MarketingAI</h2>
         </div>
-        <div className="absolute bottom-0 w-64 p-6">
-          <h3 className="text-lg font-bold mb-2 text-white">Quick Guide</h3>
-          <ol className="list-decimal list-inside space-y-1 text-sm text-white">
-            <li>1</li>
-            <li>2</li>
-            <li>3</li>
-            <li>4</li>
-          </ol>
+        
+        <nav className="flex-1 px-2 py-4 space-y-1">
+          {navigation.map((item) => {
+            const isActive = location.pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-primary text-primary-content'
+                    : 'hover:bg-base-300'
+                }`}
+              >
+                <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-primary-content' : 'text-base-content'}`} />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
+        
+        <div className="p-4 border-t border-base-300">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <img
+                className="h-8 w-8 rounded-full"
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                alt="User avatar"
+              />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">Marketing Team</p>
+              <p className="text-xs text-base-content/70">Enterprise Plan</p>
+            </div>
+          </div>
         </div>
-      </aside>
-
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-0"
-          onClick={toggleSidebar}
-        />
-      )}
-    </>
+      </div>
+    </div>
   )
 }

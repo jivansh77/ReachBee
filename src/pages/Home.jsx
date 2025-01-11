@@ -90,7 +90,7 @@ const Home = () => {
             <p className="py-6">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
             </p>
-            <Link to="/documents" className="btn btn-primary">
+            <Link to="/dashboard" className="btn btn-primary">
               Get Started
             </Link>
           </div>

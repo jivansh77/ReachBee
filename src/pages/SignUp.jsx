@@ -9,6 +9,7 @@ const auth = getAuth(app);
 const gooleProvider = new GoogleAuthProvider()
 
 const SignUp = () => {
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -16,11 +17,16 @@ const SignUp = () => {
   const signupUser = () => {
     createUserWithEmailAndPassword(auth,email,password).then((value)=>console.log(value),alert("success"));
   }
-  const signupwithGoogle = () =>{
-    signInWithPopup(auth,gooleProvider).then(
-      // console.log('Google Sign-In Success:', result);
-      <Link to="/dashboard"></Link>);
-      
+  const signupwithGoogle = () => {
+    signInWithPopup(auth, gooleProvider)
+      .then((result) => {
+        console.log('Google Sign-In Success:', result);
+        navigate('/business-form');
+      })
+      .catch((error) => {
+        console.error('Google Sign-In Error:', error);
+        // Optionally handle error case
+      });
   }
   return (
     <div className="hero min-h-screen bg-base-200">

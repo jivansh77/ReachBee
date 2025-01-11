@@ -20,7 +20,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-64 bg-base-200 text-base-content h-screen">
+    <div className="fixed w-64 bg-base-200 text-base-content h-screen overflow-y-auto">
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-center h-16 px-4">
           <h2 className="text-xl font-bold">MarketingAI</h2>

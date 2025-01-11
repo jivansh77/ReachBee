@@ -24,7 +24,7 @@ const AppContent = () => {
       <div className="flex flex-1">
         {showSidebar && <Sidebar />}
         
-        <main className={`${showSidebar ? 'flex-1' : 'w-full'} overflow-y-auto`}>
+        <main className={`flex-1 ${showSidebar ? 'ml-64' : 'w-full'}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />

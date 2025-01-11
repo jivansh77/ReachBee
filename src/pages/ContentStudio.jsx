@@ -4,6 +4,14 @@ import { RiMagicLine, RiFileTextLine, RiImageLine, RiVideoLine } from 'react-ico
 export default function ContentStudio() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [contentType, setContentType] = useState('social');
+  const [prompt, setPrompt] = useState('');
+  const [emailData, setEmailData] = useState({
+    subject: '',
+    to: '',
+    preview: null,
+    loading: false,
+    error: null,
+  });
   
   const templates = [
     {
@@ -83,6 +91,71 @@ export default function ContentStudio() {
     }
   };
 
+  const generateEmailPreview = async () => {
+    try {
+      setEmailData(prev => ({ ...prev, loading: true, error: null }));
+      const response = await fetch('http://localhost:5005/api/email/preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: `${prompt}\n\nPlease create a marketing email that includes:\n- Engaging subject line\n- Clear message\n- Call to action`,
+          campaignType: 'email',
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate preview');
+      
+      const data = await response.json();
+      // Ensure the preview content is properly formatted HTML
+      const cleanContent = data.content.includes('<html') 
+        ? data.content 
+        : `<div>${data.content}</div>`;
+        
+      setEmailData(prev => ({ ...prev, preview: cleanContent }));
+    } catch (error) {
+      setEmailData(prev => ({ ...prev, error: error.message }));
+    } finally {
+      setEmailData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const sendEmailCampaign = async () => {
+    try {
+      setEmailData(prev => ({ ...prev, loading: true, error: null }));
+      const response = await fetch('http://localhost:5005/api/email/campaign', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          to: emailData.to,
+          subject: emailData.subject,
+          campaignType: 'email',
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to send campaign');
+      
+      const data = await response.json();
+      // Reset form after successful send
+      setPrompt('');
+      setEmailData({
+        subject: '',
+        to: '',
+        preview: null,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      setEmailData(prev => ({ ...prev, error: error.message }));
+    } finally {
+      setEmailData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -108,56 +181,168 @@ export default function ContentStudio() {
               <textarea 
                 className="textarea textarea-bordered h-24" 
                 placeholder={getPlaceholderText()}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
               />
+              {contentType === 'email' && (
+                <>
+                  <div className="mt-4">
+                    <label className="label">
+                      <span className="label-text">To Email(s)</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered w-full"
+                      placeholder="email@example.com, email2@example.com"
+                      value={emailData.to}
+                      onChange={(e) => setEmailData(prev => ({ ...prev, to: e.target.value }))}
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <label className="label">
+                      <span className="label-text">Subject Line</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered w-full"
+                      placeholder="Enter email subject"
+                      value={emailData.subject}
+                      onChange={(e) => setEmailData(prev => ({ ...prev, subject: e.target.value }))}
+                    />
+                  </div>
+                </>
+              )}
               <label className="label">
                 <span className="label-text-alt">AI will optimize the content based on your target audience and goals</span>
               </label>
               <div className="flex gap-2 mt-4">
-                <button className="btn btn-primary">Generate Content</button>
-                <button className="btn btn-outline">Advanced Options</button>
+                {contentType === 'email' ? (
+                  <>
+                    <button 
+                      className={`btn btn-primary ${emailData.loading ? 'loading' : ''}`}
+                      onClick={generateEmailPreview}
+                      disabled={!prompt || emailData.loading}
+                    >
+                      Generate Preview
+                    </button>
+                    <button 
+                      className={`btn btn-success ${emailData.loading ? 'loading' : ''}`}
+                      onClick={sendEmailCampaign}
+                      disabled={!emailData.preview || !emailData.to || !emailData.subject || emailData.loading}
+                    >
+                      Send Campaign
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="btn btn-primary">Generate Content</button>
+                    <button className="btn btn-outline">Advanced Options</button>
+                  </>
+                )}
               </div>
-            </div>
-
-            {/* New: Live Preview Section */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Live Platform Previews</h3>
-              <div className="tabs tabs-boxed">
-                <a className="tab tab-active">Instagram</a>
-                <a className="tab">Facebook</a>
-                <a className="tab">Twitter</a>
-                <a className="tab">LinkedIn</a>
-              </div>
-              
-              {/* Instagram Preview */}
-              <div className="bg-white rounded-lg p-4 shadow-inner">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-primary"></div>
-                  <div>
-                    <p className="font-semibold text-sm">Your Brand</p>
-                    <p className="text-xs text-gray-500">Sponsored</p>
+              {emailData.error && (
+                <div className="alert alert-error mt-4">
+                  <div className="flex-1">
+                    <label>{emailData.error}</label>
                   </div>
                 </div>
-                <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
-                  <p className="text-sm text-base-content/70">Image Preview</p>
-                </div>
-                <p className="text-sm mb-2">✨ Elevate your summer style with our new collection!</p>
-                <div className="flex gap-4 text-sm text-gray-500">
-                  <span>❤️ Like</span>
-                  <span>💬 Comment</span>
-                  <span>🔄 Share</span>
-                </div>
-              </div>
+              )}
+            </div>
 
-              <div className="alert alert-info">
-                <div>
-                  <h3 className="font-bold">AI Format Optimization</h3>
-                  <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                    <li>Optimal image ratio: 1:1 for feed posts</li>
-                    <li>Recommended hashtags: #SummerStyle #Fashion</li>
-                    <li>Best posting time: Today at 6:00 PM EST</li>
-                  </ul>
+            {/* Preview Section */}
+            <div className="space-y-4">
+              {contentType === 'email' ? (
+                <div className="bg-white rounded-lg p-4 shadow-inner">
+                  <h3 className="font-semibold mb-4">Email Campaign Preview</h3>
+                  {emailData.preview ? (
+                    <div 
+                      className="prose max-w-none"
+                      dangerouslySetInnerHTML={{ __html: emailData.preview }}
+                    />
+                  ) : (
+                    <div className="alert alert-info">
+                      <div>
+                        <h3 className="font-bold">Email Marketing Tips</h3>
+                        <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                          <li>Subject line optimization</li>
+                          <li>Personalization tokens available</li>
+                          <li>Mobile-responsive template</li>
+                          <li>A/B testing recommended</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : contentType === 'social' ? (
+                <>
+                  <h3 className="font-semibold">Live Platform Previews</h3>
+                  <div className="tabs tabs-boxed">
+                    <a className="tab tab-active">Instagram</a>
+                    <a className="tab">Facebook</a>
+                    <a className="tab">Twitter</a>
+                    <a className="tab">LinkedIn</a>
+                  </div>
+                  
+                  {/* Instagram Preview */}
+                  <div className="bg-white rounded-lg p-4 shadow-inner">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-primary"></div>
+                      <div>
+                        <p className="font-semibold text-sm">Your Brand</p>
+                        <p className="text-xs text-gray-500">Sponsored</p>
+                      </div>
+                    </div>
+                    <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
+                      <p className="text-sm text-base-content/70">Image Preview</p>
+                    </div>
+                    <p className="text-sm mb-2">✨ Elevate your summer style with our new collection!</p>
+                    <div className="flex gap-4 text-sm text-gray-500">
+                      <span>❤️ Like</span>
+                      <span>💬 Comment</span>
+                      <span>🔄 Share</span>
+                    </div>
+                  </div>
+
+                  <div className="alert alert-info">
+                    <div>
+                      <h3 className="font-bold">AI Format Optimization</h3>
+                      <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                        <li>Optimal image ratio: 1:1 for feed posts</li>
+                        <li>Recommended hashtags: #SummerStyle #Fashion</li>
+                        <li>Best posting time: Today at 6:00 PM EST</li>
+                      </ul>
+                    </div>
+                  </div>
+                </>
+              ) : contentType === 'video' ? (
+                <div className="bg-white rounded-lg p-4 shadow-inner">
+                  <h3 className="font-semibold mb-4">Video Script Preview</h3>
+                  <div className="alert alert-info">
+                    <div>
+                      <h3 className="font-bold">Video Content Tips</h3>
+                      <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                        <li>Optimal video length</li>
+                        <li>Script structure suggestions</li>
+                        <li>Key points to cover</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg p-4 shadow-inner">
+                  <h3 className="font-semibold mb-4">Ad Creative Preview</h3>
+                  <div className="alert alert-info">
+                    <div>
+                      <h3 className="font-bold">Ad Optimization Tips</h3>
+                      <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                        <li>Platform-specific dimensions</li>
+                        <li>CTA optimization</li>
+                        <li>Ad copy length guidelines</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

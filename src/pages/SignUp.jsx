@@ -2,7 +2,9 @@ import React,{useState} from 'react'
 import { Link } from 'react-router-dom'
 import { app } from '../firebase'
 import { getAuth,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
 
+// const navigate = useNavigate();
 const auth = getAuth(app);
 const gooleProvider = new GoogleAuthProvider()
 
@@ -15,7 +17,10 @@ const SignUp = () => {
     createUserWithEmailAndPassword(auth,email,password).then((value)=>console.log(value),alert("success"));
   }
   const signupwithGoogle = () =>{
-    signInWithPopup(auth,gooleProvider)
+    signInWithPopup(auth,gooleProvider).then(
+      // console.log('Google Sign-In Success:', result);
+      <Link to="/dashboard"></Link>);
+      
   }
   return (
     <div className="hero min-h-screen bg-base-200">

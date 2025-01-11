@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { RiUserLine, RiBarChartBoxLine, RiRocketLine, RiMoneyDollarCircleLine, RiFlag2Line } from 'react-icons/ri';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -97,7 +98,7 @@ export default function Dashboard() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Marketing Dashboard</h1>
-        <button className="btn btn-primary">New Campaign</button>
+        <Link to="/campaign-builder" className="btn btn-primary">New Campaign</Link>
       </div>
 
       {/* Stats Grid */}

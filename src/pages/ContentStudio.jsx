@@ -7,7 +7,8 @@ export default function ContentStudio() {
   const [prompt, setPrompt] = useState('');
   const [emailData, setEmailData] = useState({
     subject: '',
-    to: '',
+    emailList: null,
+    extractedEmails: [],
     preview: null,
     loading: false,
     error: null,
@@ -91,6 +92,18 @@ export default function ContentStudio() {
     }
   };
 
+  const handleEmailListUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEmailData(prev => ({ 
+        ...prev, 
+        emailList: file,
+        loading: false,
+        error: null 
+      }));
+    }
+  };
+
   const generateEmailPreview = async () => {
     try {
       setEmailData(prev => ({ ...prev, loading: true, error: null }));
@@ -114,6 +127,7 @@ export default function ContentStudio() {
         : `<div>${data.content}</div>`;
         
       setEmailData(prev => ({ ...prev, preview: cleanContent }));
+
     } catch (error) {
       setEmailData(prev => ({ ...prev, error: error.message }));
     } finally {
@@ -122,6 +136,14 @@ export default function ContentStudio() {
   };
 
   const sendEmailCampaign = async () => {
+    if (!emailData.preview || !emailData.subject) {
+      setEmailData(prev => ({ 
+        ...prev, 
+        error: 'Please generate a preview and provide a subject line before sending.' 
+      }));
+      return;
+    }
+
     try {
       setEmailData(prev => ({ ...prev, loading: true, error: null }));
       const response = await fetch('http://localhost:5005/api/email/campaign', {
@@ -131,30 +153,77 @@ export default function ContentStudio() {
         },
         body: JSON.stringify({
           prompt,
-          to: emailData.to,
           subject: emailData.subject,
-          campaignType: 'email',
+          campaignType: 'email'
         }),
       });
 
       if (!response.ok) throw new Error('Failed to send campaign');
       
-      const data = await response.json();
       // Reset form after successful send
       setPrompt('');
       setEmailData({
         subject: '',
-        to: '',
+        emailList: null,
+        extractedEmails: [],
         preview: null,
         loading: false,
         error: null,
       });
+
+      // Show success message
+      alert('Campaign sent successfully to the allowed email addresses!');
     } catch (error) {
       setEmailData(prev => ({ ...prev, error: error.message }));
     } finally {
       setEmailData(prev => ({ ...prev, loading: false }));
     }
   };
+
+  const generateContent = async () => {
+    try {
+      setEmailData(prev => ({ ...prev, loading: true, error: null }));
+      const response = await fetch('http://localhost:5005/api/content/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          contentType,
+          platforms: selectedTemplate === 1 ? ['facebook', 'instagram', 'linkedin'] : undefined,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate content');
+      
+      const data = await response.json();
+      // Handle the generated content based on type
+      switch (contentType) {
+        case 'social':
+          // Update UI with social media content
+          break;
+        case 'ad':
+          // Update UI with ad content
+          break;
+        case 'video':
+          // Update UI with video script
+          break;
+      }
+    } catch (error) {
+      setEmailData(prev => ({ ...prev, error: error.message }));
+    } finally {
+      setEmailData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Add state for advanced options
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [advancedOptions, setAdvancedOptions] = useState({
+    tone: 'professional',
+    length: 'medium',
+    includeHashtags: true,
+  });
 
   return (
     <div className="p-6 space-y-6">
@@ -188,15 +257,50 @@ export default function ContentStudio() {
                 <>
                   <div className="mt-4">
                     <label className="label">
-                      <span className="label-text">To Email(s)</span>
+                      <span className="label-text">Email List</span>
                     </label>
-                    <input
-                      type="text"
-                      className="input input-bordered w-full"
-                      placeholder="email@example.com, email2@example.com"
-                      value={emailData.to}
-                      onChange={(e) => setEmailData(prev => ({ ...prev, to: e.target.value }))}
-                    />
+                    <div className="flex flex-col space-y-2">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-base-200 hover:bg-base-300">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <RiFileTextLine className="w-8 h-8 mb-2 text-base-content" />
+                          <p className="mb-2 text-sm text-base-content">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-base-content/70">
+                            CSV, Excel, or PDF (containing email addresses)
+                          </p>
+                        </div>
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept=".csv,.xlsx,.xls,.pdf"
+                          onChange={handleEmailListUpload}
+                        />
+                      </label>
+                      {emailData.emailList && (
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center justify-between p-2 bg-success/10 rounded">
+                            <span className="text-sm">
+                              {emailData.emailList.name}
+                            </span>
+                            <button 
+                              className="btn btn-ghost btn-xs"
+                              onClick={() => setEmailData(prev => ({ 
+                                ...prev, 
+                                emailList: null
+                              }))}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          <div className="p-2 bg-info/10 rounded">
+                            <p className="text-sm">
+                              File uploaded successfully. Campaign will be sent to the allowed email addresses.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="mt-4">
                     <label className="label">
@@ -225,21 +329,90 @@ export default function ContentStudio() {
                     >
                       Generate Preview
                     </button>
-                    <button 
-                      className={`btn btn-success ${emailData.loading ? 'loading' : ''}`}
-                      onClick={sendEmailCampaign}
-                      disabled={!emailData.preview || !emailData.to || !emailData.subject || emailData.loading}
-                    >
-                      Send Campaign
-                    </button>
+                    {emailData.preview && (
+                      <button 
+                        className={`btn btn-success ${emailData.loading ? 'loading' : ''}`}
+                        onClick={sendEmailCampaign}
+                        disabled={!emailData.subject || emailData.loading}
+                      >
+                        Send Campaign
+                      </button>
+                    )}
                   </>
                 ) : (
                   <>
-                    <button className="btn btn-primary">Generate Content</button>
-                    <button className="btn btn-outline">Advanced Options</button>
+                    <button 
+                      className={`btn btn-primary ${emailData.loading ? 'loading' : ''}`}
+                      onClick={generateContent}
+                      disabled={!prompt || emailData.loading}
+                    >
+                      Generate Content
+                    </button>
+                    <button 
+                      className="btn btn-outline"
+                      onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                    >
+                      Advanced Options
+                    </button>
                   </>
                 )}
               </div>
+              {showAdvancedOptions && (
+                <div className="mt-4 p-4 bg-base-200 rounded-lg">
+                  <h3 className="font-semibold mb-3">Advanced Options</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Tone</span>
+                      </label>
+                      <select 
+                        className="select select-bordered"
+                        value={advancedOptions.tone}
+                        onChange={(e) => setAdvancedOptions(prev => ({
+                          ...prev,
+                          tone: e.target.value
+                        }))}
+                      >
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                        <option value="friendly">Friendly</option>
+                        <option value="humorous">Humorous</option>
+                      </select>
+                    </div>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Content Length</span>
+                      </label>
+                      <select 
+                        className="select select-bordered"
+                        value={advancedOptions.length}
+                        onChange={(e) => setAdvancedOptions(prev => ({
+                          ...prev,
+                          length: e.target.value
+                        }))}
+                      >
+                        <option value="short">Short</option>
+                        <option value="medium">Medium</option>
+                        <option value="long">Long</option>
+                      </select>
+                    </div>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Include Hashtags</span>
+                      </label>
+                      <input 
+                        type="checkbox"
+                        className="toggle toggle-primary"
+                        checked={advancedOptions.includeHashtags}
+                        onChange={(e) => setAdvancedOptions(prev => ({
+                          ...prev,
+                          includeHashtags: e.target.checked
+                        }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
               {emailData.error && (
                 <div className="alert alert-error mt-4">
                   <div className="flex-1">

@@ -6,6 +6,41 @@ export default function CampaignBuilder() {
   const [selectedPlatforms, setSelectedPlatforms] = useState(['facebook', 'instagram']);
   const [selectedAudience, setSelectedAudience] = useState(null);
   const [budget, setBudget] = useState(10000);
+  const [selectedContent, setSelectedContent] = useState({});
+  const [contentLibrary, setContentLibrary] = useState({
+    social: [
+      {
+        id: 1,
+        platform: 'instagram',
+        content: '✨ Discover innovation at its finest! Our latest collection brings together style and sustainability.',
+        preview: null
+      }
+    ],
+    email: [
+      {
+        id: 1,
+        subject: 'Welcome to Our Community!',
+        content: '<div>Welcome email content...</div>',
+        preview: null
+      }
+    ],
+    video: [
+      {
+        id: 1,
+        title: 'Product Demo',
+        script: 'Video script content...',
+        thumbnail: null
+      }
+    ],
+    ad: [
+      {
+        id: 1,
+        platform: 'facebook',
+        content: 'Transform your business with our innovative solutions',
+        preview: null
+      }
+    ]
+  });
 
   const steps = [
     { id: 1, name: 'Campaign Details', icon: RiRocketLine },
@@ -45,6 +80,72 @@ export default function CampaignBuilder() {
     },
   ];
 
+  const [campaignData, setCampaignData] = useState({
+    name: '',
+    objective: 'Brand Awareness',
+    startDate: '',
+    endDate: '',
+    description: '',
+    loading: false,
+    error: null
+  });
+
+  const handleNext = () => {
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleLaunchCampaign = async () => {
+    try {
+      setCampaignData(prev => ({ ...prev, loading: true, error: null }));
+      const response = await fetch('http://localhost:5005/api/campaigns/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: campaignData.name,
+          objective: campaignData.objective,
+          startDate: campaignData.startDate,
+          endDate: campaignData.endDate,
+          description: campaignData.description,
+          platforms: selectedPlatforms,
+          audience: selectedAudience,
+          budget
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to launch campaign');
+      
+      // Reset form and show success message
+      setCampaignData({
+        name: '',
+        objective: 'Brand Awareness',
+        startDate: '',
+        endDate: '',
+        description: '',
+        loading: false,
+        error: null
+      });
+      setCurrentStep(1);
+      setSelectedPlatforms(['facebook', 'instagram']);
+      setSelectedAudience(null);
+      setBudget(10000);
+      
+    } catch (error) {
+      setCampaignData(prev => ({ ...prev, error: error.message }));
+    } finally {
+      setCampaignData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -63,13 +164,25 @@ export default function CampaignBuilder() {
                       type="text"
                       placeholder="Enter campaign name"
                       className="input input-bordered"
+                      value={campaignData.name}
+                      onChange={(e) => setCampaignData(prev => ({
+                        ...prev,
+                        name: e.target.value
+                      }))}
                     />
                   </div>
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text">Campaign Objective</span>
                     </label>
-                    <select className="select select-bordered">
+                    <select 
+                      className="select select-bordered"
+                      value={campaignData.objective}
+                      onChange={(e) => setCampaignData(prev => ({
+                        ...prev,
+                        objective: e.target.value
+                      }))}
+                    >
                       <option>Brand Awareness</option>
                       <option>Lead Generation</option>
                       <option>Sales Conversion</option>
@@ -83,6 +196,11 @@ export default function CampaignBuilder() {
                     <input
                       type="date"
                       className="input input-bordered"
+                      value={campaignData.startDate}
+                      onChange={(e) => setCampaignData(prev => ({
+                        ...prev,
+                        startDate: e.target.value
+                      }))}
                     />
                   </div>
                   <div className="form-control">
@@ -92,6 +210,11 @@ export default function CampaignBuilder() {
                     <input
                       type="date"
                       className="input input-bordered"
+                      value={campaignData.endDate}
+                      onChange={(e) => setCampaignData(prev => ({
+                        ...prev,
+                        endDate: e.target.value
+                      }))}
                     />
                   </div>
                   <div className="form-control md:col-span-2">
@@ -101,6 +224,11 @@ export default function CampaignBuilder() {
                     <textarea
                       className="textarea textarea-bordered h-24"
                       placeholder="Describe your campaign objectives and goals"
+                      value={campaignData.description}
+                      onChange={(e) => setCampaignData(prev => ({
+                        ...prev,
+                        description: e.target.value
+                      }))}
                     />
                   </div>
                 </div>
@@ -212,35 +340,112 @@ export default function CampaignBuilder() {
                   <RiImageLine className="text-primary" />
                   Content Selection
                 </h2>
+                <div className="tabs tabs-boxed mb-6">
+                  <a className="tab tab-active">Social Media</a>
+                  <a className="tab">Email Campaigns</a>
+                  <a className="tab">Video Content</a>
+                  <a className="tab">Ad Creatives</a>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Content Library */}
                   <div>
-                    <h3 className="font-semibold mb-4">AI-Generated Content</h3>
+                    <h3 className="font-semibold mb-4">Content Library</h3>
                     <div className="space-y-4">
-                      {selectedPlatforms.map((platform) => (
-                        <div key={platform} className="card bg-base-200">
-                          <div className="card-body">
-                            <h4 className="font-medium">{platform.charAt(0).toUpperCase() + platform.slice(1)} Post</h4>
-                            <p className="text-sm">✨ Discover innovation at its finest! Our latest collection brings together style and sustainability.</p>
-                            <div className="card-actions justify-end">
-                              <button className="btn btn-sm btn-outline">Edit</button>
-                              <button className="btn btn-sm btn-primary">Use</button>
+                      {Object.entries(contentLibrary).map(([type, items]) => (
+                        <div key={type}>
+                          <h4 className="font-medium mb-2 capitalize">{type} Content</h4>
+                          {items.map((item) => (
+                            <div key={item.id} className="card bg-base-200 mb-3">
+                              <div className="card-body">
+                                {type === 'email' ? (
+                                  <>
+                                    <h5 className="font-medium">{item.subject}</h5>
+                                    <div className="text-sm" dangerouslySetInnerHTML={{ __html: item.content }} />
+                                    <div className="card-actions justify-end">
+                                      <button 
+                                        className={`btn btn-sm ${selectedContent[type]?.includes(item.id) ? 'btn-primary' : 'btn-outline'}`}
+                                        onClick={() => setSelectedContent(prev => ({
+                                          ...prev,
+                                          [type]: prev[type]?.includes(item.id)
+                                            ? prev[type].filter(id => id !== item.id)
+                                            : [...(prev[type] || []), item.id]
+                                        }))}
+                                      >
+                                        {selectedContent[type]?.includes(item.id) ? 'Selected' : 'Select'}
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : type === 'video' ? (
+                                  <>
+                                    <h5 className="font-medium">{item.title}</h5>
+                                    <p className="text-sm">{item.script}</p>
+                                    <div className="card-actions justify-end">
+                                      <button 
+                                        className={`btn btn-sm ${selectedContent[type]?.includes(item.id) ? 'btn-primary' : 'btn-outline'}`}
+                                        onClick={() => setSelectedContent(prev => ({
+                                          ...prev,
+                                          [type]: prev[type]?.includes(item.id)
+                                            ? prev[type].filter(id => id !== item.id)
+                                            : [...(prev[type] || []), item.id]
+                                        }))}
+                                      >
+                                        {selectedContent[type]?.includes(item.id) ? 'Selected' : 'Select'}
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <h5 className="font-medium capitalize">{item.platform} Post</h5>
+                                    <p className="text-sm">{item.content}</p>
+                                    <div className="card-actions justify-end">
+                                      <button 
+                                        className={`btn btn-sm ${selectedContent[type]?.includes(item.id) ? 'btn-primary' : 'btn-outline'}`}
+                                        onClick={() => setSelectedContent(prev => ({
+                                          ...prev,
+                                          [type]: prev[type]?.includes(item.id)
+                                            ? prev[type].filter(id => id !== item.id)
+                                            : [...(prev[type] || []), item.id]
+                                        }))}
+                                      >
+                                        {selectedContent[type]?.includes(item.id) ? 'Selected' : 'Select'}
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          ))}
                         </div>
                       ))}
                     </div>
                   </div>
+
+                  {/* Campaign Schedule */}
                   <div>
-                    <h3 className="font-semibold mb-4">Upload Custom Content</h3>
-                    <div className="flex items-center justify-center w-full">
-                      <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-base-200 hover:bg-base-300">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <RiImageLine className="w-8 h-8 mb-4 text-base-content" />
-                          <p className="mb-2 text-sm text-base-content"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                          <p className="text-xs text-base-content/70">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
-                        </div>
-                        <input type="file" className="hidden" />
-                      </label>
+                    <h3 className="font-semibold mb-4">Campaign Schedule</h3>
+                    <div className="space-y-4">
+                      {Object.entries(selectedContent).map(([type, ids]) => (
+                        ids.map(id => {
+                          const item = contentLibrary[type].find(i => i.id === id);
+                          return (
+                            <div key={`${type}-${id}`} className="card bg-base-200">
+                              <div className="card-body">
+                                <div className="flex justify-between items-center">
+                                  <h4 className="font-medium capitalize">
+                                    {type === 'email' ? item.subject : 
+                                     type === 'video' ? item.title :
+                                     `${item.platform} Post`}
+                                  </h4>
+                                  <input
+                                    type="datetime-local"
+                                    className="input input-bordered input-sm"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -366,48 +571,82 @@ export default function CampaignBuilder() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Campaign Builder</h1>
-        <button className="btn btn-primary">Save Draft</button>
+        <div className="flex gap-2">
+          <button 
+            className="btn btn-outline"
+            onClick={handleBack}
+            disabled={currentStep === 1}
+          >
+            Back
+          </button>
+          {currentStep < steps.length ? (
+            <button 
+              className="btn btn-primary"
+              onClick={handleNext}
+              disabled={
+                (currentStep === 1 && (!campaignData.name || !campaignData.objective)) ||
+                (currentStep === 2 && !selectedAudience)
+              }
+            >
+              Next Step
+            </button>
+          ) : (
+            <button 
+              className={`btn btn-success ${campaignData.loading ? 'loading' : ''}`}
+              onClick={handleLaunchCampaign}
+              disabled={campaignData.loading}
+            >
+              Launch Campaign
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Progress Steps */}
-      <div className="card bg-base-100 shadow-lg">
-        <div className="card-body">
-          <ul className="steps steps-horizontal w-full">
-            {steps.map((step) => (
-              <li
-                key={step.id}
-                className={`step ${step.id <= currentStep ? 'step-primary' : ''} cursor-pointer`}
-                onClick={() => setCurrentStep(step.id)}
-              >
-                <div className="flex flex-col items-center">
-                  <step.icon className="w-6 h-6 mb-1" />
-                  {step.name}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="flex justify-between">
+        {steps.map((step) => (
+          <div
+            key={step.id}
+            className={`flex items-center ${
+              step.id < steps.length ? 'flex-1' : ''
+            }`}
+          >
+            <div
+              className={`flex items-center justify-center w-10 h-10 rounded-full border-2 
+                ${
+                  step.id === currentStep
+                    ? 'border-primary bg-primary text-primary-content'
+                    : step.id < currentStep
+                    ? 'border-success bg-success text-success-content'
+                    : 'border-base-300'
+                }`}
+            >
+              <step.icon className="w-5 h-5" />
+            </div>
+            <div
+              className={`flex-1 h-0.5 ${
+                step.id < steps.length
+                  ? step.id < currentStep
+                    ? 'bg-success'
+                    : 'bg-base-300'
+                  : 'hidden'
+              }`}
+            />
+          </div>
+        ))}
       </div>
 
       {/* Step Content */}
       {renderStepContent()}
 
-      {/* Action Buttons */}
-      <div className="flex justify-between">
-        <button 
-          className="btn btn-outline"
-          disabled={currentStep === 1}
-          onClick={() => setCurrentStep(currentStep - 1)}
-        >
-          Previous
-        </button>
-        <button 
-          className="btn btn-primary"
-          onClick={() => currentStep < 4 ? setCurrentStep(currentStep + 1) : null}
-        >
-          {currentStep === 4 ? 'Launch Campaign' : 'Next Step'}
-        </button>
-      </div>
+      {/* Error Message */}
+      {campaignData.error && (
+        <div className="alert alert-error">
+          <div className="flex-1">
+            <label>{campaignData.error}</label>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

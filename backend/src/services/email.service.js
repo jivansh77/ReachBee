@@ -8,6 +8,14 @@ dotenv.config();
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// List of allowed email addresses
+const ALLOWED_EMAILS = [
+  'jivansh777@gmail.com',
+  'jvmusic777@gmail.com',
+  'arnavdas167@gmail.com',
+  'lordorigami4703@gmail.com'
+];
+
 class EmailService {
   async generateEmailContent(prompt) {
     try {
@@ -31,9 +39,8 @@ Requirements:
         }
       });
 
-      // Clean up the response to ensure proper HTML
       const cleanedResponse = response.generated_text
-        .replace(/^.*?\[\/INST\]\s*/s, '') // Remove instruction prefix
+        .replace(/^.*?\[\/INST\]\s*/s, '')
         .trim();
 
       return cleanedResponse;
@@ -45,6 +52,12 @@ Requirements:
 
   async sendEmail({ to, subject, content, from = "onboarding@resend.dev" }) {
     try {
+      // Validate that all recipient emails are in the allowed list
+      const invalidEmails = to.filter(email => !ALLOWED_EMAILS.includes(email));
+      if (invalidEmails.length > 0) {
+        throw new Error(`Invalid email recipients: ${invalidEmails.join(', ')}`);
+      }
+
       const response = await resend.emails.send({
         from,
         to,
@@ -61,16 +74,16 @@ Requirements:
 
   async createEmailCampaign(campaignData) {
     try {
-      const { prompt, to, subject, campaignType } = campaignData;
+      const { prompt, subject, campaignType } = campaignData;
       
       // Generate email content using Llama 2
       const emailContent = await this.generateEmailContent(
         `Create a ${campaignType} email with the following requirements: ${prompt}`
       );
 
-      // Send the email
+      // Send to all allowed emails
       const result = await this.sendEmail({
-        to,
+        to: ALLOWED_EMAILS,
         subject,
         content: emailContent,
       });
@@ -79,6 +92,7 @@ Requirements:
         success: true,
         messageId: result.id,
         content: emailContent,
+        sentTo: ALLOWED_EMAILS
       };
     } catch (error) {
       console.error('Error creating email campaign:', error);

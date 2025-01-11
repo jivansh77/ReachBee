@@ -29,10 +29,10 @@ export default function Sidebar() {
           <Link to="/" className="flex items-center gap-1 cursor-pointer">
             <img 
               src="/logo.png" 
-              alt="BrainFox Logo" 
+              alt="Logo" 
               className="h-20 w-auto mb-7"
             />
-            <h2 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#efa675] to-[#fec76f]">BrainFox</h2>
+            <h2 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[#efa675] to-[#fec76f]">Company</h2>
           </Link>
           <nav>
             <ul className="space-y-2">
@@ -60,10 +60,10 @@ export default function Sidebar() {
         <div className="absolute bottom-0 w-64 p-6">
           <h3 className="text-lg font-bold mb-2 text-white">Quick Guide</h3>
           <ol className="list-decimal list-inside space-y-1 text-sm text-white">
-            <li>Upload PDF files of past papers</li>
-            <li>Wait for AI analysis</li>
-            <li>Review topic distribution</li>
-            <li>Check predicted questions</li>
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
           </ol>
         </div>
       </aside>

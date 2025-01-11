@@ -1,7 +1,22 @@
-import React from 'react'
+import React,{useState} from 'react'
 import { Link } from 'react-router-dom'
+import { app } from '../firebase'
+import { getAuth,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup } from "firebase/auth";
+
+const auth = getAuth(app);
+const gooleProvider = new GoogleAuthProvider()
 
 const SignUp = () => {
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  const signupUser = () => {
+    createUserWithEmailAndPassword(auth,email,password).then((value)=>console.log(value),alert("success"));
+  }
+  const signupwithGoogle = () =>{
+    signInWithPopup(auth,gooleProvider)
+  }
   return (
     <div className="hero min-h-screen bg-base-200">
       <div className="hero-content flex-col lg:flex-row-reverse gap-20">
@@ -48,6 +63,8 @@ const SignUp = () => {
                   <span className="label-text">Email</span>
                 </label>
                 <input 
+                  onChange={(e) => setEmail(e.target.value)}
+                  value={email}
                   type="email" 
                   placeholder="your@email.com" 
                   className="input input-bordered" 
@@ -59,6 +76,8 @@ const SignUp = () => {
                   <span className="label-text">Password</span>
                 </label>
                 <input 
+                  onChange={(e) => setPassword(e.target.value)}
+                  value={password}
                   type="password" 
                   placeholder="Create a password" 
                   className="input input-bordered" 
@@ -77,9 +96,11 @@ const SignUp = () => {
                 />
               </div>
               <div className="form-control mt-8">
-                <button className="btn btn-primary">Sign Up</button>
+                <button className="btn btn-primary" onClick={signupUser}>Sign Up</button>
               </div>
+              
               <div className="divider">OR</div>
+              <button onClick={signupwithGoogle}>SignInwith Google</button>
               <div className="text-center">
                 <p className="text-sm">Already have an account?
                   <Link to="/signin" className="btn btn-link text-primary -ml-3">Sign In</Link>

@@ -4,7 +4,7 @@ import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { FacebookAuthProvider, signInWithPopup, OAuthProvider } from 'firebase/auth';
 import { FaFacebook, FaInstagram } from 'react-icons/fa';
-
+   
 const BusinessForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({

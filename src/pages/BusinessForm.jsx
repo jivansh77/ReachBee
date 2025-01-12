@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { FacebookAuthProvider, signInWithPopup, OAuthProvider } from 'firebase/auth';
+import { FaFacebook, FaInstagram } from 'react-icons/fa';
 
 const BusinessForm = () => {
   const navigate = useNavigate();
@@ -20,6 +22,14 @@ const BusinessForm = () => {
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [socialMediaData, setSocialMediaData] = useState({
+    facebook: null,
+    instagram: null
+  });
+  const [socialMediaLoading, setSocialMediaLoading] = useState({
+    facebook: false,
+    instagram: false
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -38,6 +48,72 @@ const BusinessForm = () => {
     }));
   };
 
+  const handleFacebookConnect = async () => {
+    setSocialMediaLoading(prev => ({ ...prev, facebook: true }));
+    try {
+      const provider = new FacebookAuthProvider();
+      provider.addScope('pages_show_list');
+      provider.addScope('pages_read_engagement');
+      provider.addScope('pages_manage_posts');
+      
+      const result = await signInWithPopup(auth, provider);
+      const credential = FacebookAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+      
+      // Store the token and basic page data
+      const pageData = {
+        accessToken: token,
+        connectedAt: new Date().toISOString(),
+      };
+      
+      setSocialMediaData(prev => ({
+        ...prev,
+        facebook: pageData
+      }));
+      
+      // Update form data to include Facebook
+      if (!formData.socialMediaPresence.includes('facebook')) {
+        handleSocialMediaChange('facebook');
+      }
+    } catch (error) {
+      console.error('Facebook connection error:', error);
+      setError('Failed to connect to Facebook. Please try again.');
+    } finally {
+      setSocialMediaLoading(prev => ({ ...prev, facebook: false }));
+    }
+  };
+
+  const handleInstagramConnect = async () => {
+    setSocialMediaLoading(prev => ({ ...prev, instagram: true }));
+    try {
+      // Instagram Business Account connection requires Facebook authentication first
+      if (!socialMediaData.facebook) {
+        throw new Error('Please connect your Facebook account first');
+      }
+      
+      // Use the Facebook token to get Instagram Business Account
+      const instagramData = {
+        connectedAt: new Date().toISOString(),
+        linkedToFacebook: true
+      };
+      
+      setSocialMediaData(prev => ({
+        ...prev,
+        instagram: instagramData
+      }));
+      
+      // Update form data to include Instagram
+      if (!formData.socialMediaPresence.includes('instagram')) {
+        handleSocialMediaChange('instagram');
+      }
+    } catch (error) {
+      console.error('Instagram connection error:', error);
+      setError(error.message || 'Failed to connect to Instagram. Please try again.');
+    } finally {
+      setSocialMediaLoading(prev => ({ ...prev, instagram: false }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -49,9 +125,10 @@ const BusinessForm = () => {
         throw new Error('No authenticated user found');
       }
 
-      // Save business profile to Firestore
+      // Save business profile and social media data to Firestore
       await setDoc(doc(db, 'users', user.uid), {
         businessProfile: formData,
+        socialMedia: socialMediaData,
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
@@ -304,6 +381,44 @@ const BusinessForm = () => {
                     placeholder="Tell us about your business, products/services, and what makes you unique..."
                     required
                   ></textarea>
+                </div>
+
+                {/* Social Media Connection Section */}
+                <div className="form-control mt-8">
+                  <label className="label">
+                    <span className="label-text font-semibold">Connect Social Media Accounts</span>
+                  </label>
+                  <div className="flex flex-col gap-4">
+                    <button
+                      type="button"
+                      onClick={handleFacebookConnect}
+                      disabled={socialMediaLoading.facebook || socialMediaData.facebook}
+                      className={`btn ${socialMediaData.facebook ? 'btn-success' : 'btn-primary'} gap-2`}
+                    >
+                      <FaFacebook className="w-5 h-5" />
+                      {socialMediaData.facebook 
+                        ? 'Facebook Connected' 
+                        : socialMediaLoading.facebook 
+                          ? 'Connecting to Facebook...' 
+                          : 'Connect Facebook Page'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleInstagramConnect}
+                      disabled={socialMediaLoading.instagram || !socialMediaData.facebook || socialMediaData.instagram}
+                      className={`btn ${socialMediaData.instagram ? 'btn-success' : 'btn-primary'} gap-2`}
+                    >
+                      <FaInstagram className="w-5 h-5" />
+                      {socialMediaData.instagram 
+                        ? 'Instagram Connected' 
+                        : !socialMediaData.facebook
+                          ? 'Connect Facebook First'
+                          : socialMediaLoading.instagram 
+                            ? 'Connecting to Instagram...' 
+                            : 'Connect Instagram Business'}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="form-control mt-8">

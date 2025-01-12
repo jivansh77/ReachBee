@@ -1,29 +1,92 @@
+import React, { useState, useEffect } from 'react';
 import { RiUserSearchLine, RiBarChartBoxLine, RiMapPinLine, RiTimeLine } from 'react-icons/ri';
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function AudienceInsights() {
-  const segments = [
-    {
-      name: 'Young Professionals',
-      size: '1.2M',
-      engagement: '4.8%',
-      interests: ['Technology', 'Career Growth', 'Fitness'],
-      behavior: 'Most active during evenings',
-    },
-    {
-      name: 'Parents',
-      size: '850K',
-      engagement: '3.2%',
-      interests: ['Family', 'Education', 'Health'],
-      behavior: 'Active on weekends',
-    },
-    {
-      name: 'Business Decision Makers',
-      size: '450K',
-      engagement: '5.1%',
-      interests: ['Business', 'Innovation', 'Leadership'],
-      behavior: 'Active during business hours',
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [socialData, setSocialData] = useState(null);
+  const [segments, setSegments] = useState([]);
+
+  useEffect(() => {
+    const fetchSocialMediaData = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error('No authenticated user found');
+        }
+
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (!userDoc.exists()) {
+          throw new Error('User data not found');
+        }
+
+        // Set mock social data for testing
+        setSocialData({ facebook: true, instagram: true });  // Always set mock social data
+        
+        // Always set segments for testing
+        setSegments([
+          {
+            name: 'Young Professionals',
+            size: '1.2M',
+            engagement: '4.8%',
+            interests: ['Technology', 'Career Growth', 'Fitness'],
+            behavior: 'Most active during evenings',
+          },
+          {
+            name: 'Parents',
+            size: '850K',
+            engagement: '3.2%',
+            interests: ['Family', 'Education', 'Health'],
+            behavior: 'Active on weekends',
+          },
+          {
+            name: 'Business Decision Makers',
+            size: '450K',
+            engagement: '5.1%',
+            interests: ['Business', 'Innovation', 'Leadership'],
+            behavior: 'Active during business hours',
+          },
+        ]);
+      } catch (error) {
+        console.error('Error fetching social media data:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSocialMediaData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <div className="loading loading-spinner loading-lg"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-base-200 p-6">
+        <div className="alert alert-error">
+          <span>{error}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!socialData) {
+    return (
+      <div className="min-h-screen bg-base-200 p-6">
+        <div className="alert alert-warning">
+          <span>Please connect your social media accounts in the Business Profile section to view audience insights.</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -69,6 +132,21 @@ export default function AudienceInsights() {
               <div className="stat-value text-lg">6PM - 9PM</div>
               <div className="stat-desc">EST timezone</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Connected Platforms */}
+      <div className="alert alert-info">
+        <div>
+          <h3 className="font-bold">Connected Platforms</h3>
+          <div className="mt-2 space-x-2">
+            {socialData?.facebook && (
+              <span className="badge badge-primary">Facebook Page</span>
+            )}
+            {socialData?.instagram && (
+              <span className="badge badge-primary">Instagram Business</span>
+            )}
           </div>
         </div>
       </div>

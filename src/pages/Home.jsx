@@ -79,10 +79,7 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero bg-base-200 min-h-screen">
         <div className="hero-content flex-col lg:flex-row">
-          <img
-            src="https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp"
-            className="max-w-sm rounded-lg shadow-2xl" />
-          <div>
+          <div className="ml-12">
             <h1 className="text-5xl font-bold">{titleText}
               <span className="animate-blink">|</span>
             </h1>
@@ -93,6 +90,9 @@ const Home = () => {
               Get Started
             </Link>
           </div>
+          <img
+            src="/photo2.png"
+            className="max-w-sm rounded-lg" />
         </div>
       </section>
 

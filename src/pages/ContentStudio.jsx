@@ -235,6 +235,25 @@ export default function ContentStudio() {
         </div>
       </div>
 
+      {/* Content Templates */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {templates.map((template) => (
+          <div 
+            key={template.id}
+            className={`card bg-base-100 shadow-lg cursor-pointer hover:shadow-xl transition-shadow
+              ${selectedTemplate === template.id ? 'ring-2 ring-primary' : ''}`}
+            onClick={() => handleTemplateClick(template)}
+          >
+            <div className="card-body">
+              <template.icon className="w-8 h-8 text-primary" />
+              <h3 className="card-title text-lg">{template.name}</h3>
+              <p className="text-sm text-base-content/70">{template.description}</p>
+              <button className="btn btn-sm btn-outline mt-4">Use Template</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* AI Content Generator */}
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
@@ -519,25 +538,6 @@ export default function ContentStudio() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Content Templates */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {templates.map((template) => (
-          <div 
-            key={template.id}
-            className={`card bg-base-100 shadow-lg cursor-pointer hover:shadow-xl transition-shadow
-              ${selectedTemplate === template.id ? 'ring-2 ring-primary' : ''}`}
-            onClick={() => handleTemplateClick(template)}
-          >
-            <div className="card-body">
-              <template.icon className="w-8 h-8 text-primary" />
-              <h3 className="card-title text-lg">{template.name}</h3>
-              <p className="text-sm text-base-content/70">{template.description}</p>
-              <button className="btn btn-sm btn-outline mt-4">Use Template</button>
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* Recent Content */}

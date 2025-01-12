@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { RiUserLine, RiBarChartBoxLine, RiRocketLine, RiMoneyDollarCircleLine, RiFlag2Line } from 'react-icons/ri';
 import { auth, db } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { 
   UsersIcon, 
   ChartBarIcon, 
@@ -107,23 +107,42 @@ export default function Dashboard() {
   };
 
   const [businessData, setBusinessData] = useState(null);
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchBusinessData = async () => {
+    const fetchData = async () => {
       try {
         const user = auth.currentUser;
         if (user) {
+          // Fetch business data
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             setBusinessData(userDoc.data().businessProfile);
           }
+
+          // Fetch campaigns
+          const campaignsQuery = query(
+            collection(db, 'campaigns'),
+            where('userId', '==', user.uid)
+          );
+          const campaignsSnapshot = await getDocs(campaignsQuery);
+          const campaignsList = campaignsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setCampaigns(campaignsList);
         }
       } catch (error) {
-        console.error('Error fetching business data:', error);
+        console.error('Error fetching data:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchBusinessData();
+    fetchData();
   }, []);
 
   const stats = [
@@ -151,12 +170,6 @@ export default function Dashboard() {
       icon: BanknotesIcon,
       change: 'Monthly Budget'
     }
-  ];
-
-  const campaigns = [
-    { name: 'Summer Sale 2024', status: 'active', reach: '850K', conversion: '4.2%', budget: '$5,000' },
-    { name: 'Product Launch', status: 'scheduled', reach: '1.2M', conversion: '-', budget: '$8,000' },
-    { name: 'Brand Awareness', status: 'active', reach: '2.1M', conversion: '2.8%', budget: '$12,000' },
   ];
 
   return (
@@ -193,41 +206,55 @@ export default function Dashboard() {
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
           <h2 className="card-title">Active Campaigns</h2>
-          <div className="overflow-x-auto">
-            <table className="table w-full">
-              <thead>
-                <tr>
-                  <th>Campaign Name</th>
-                  <th>Status</th>
-                  <th>Audience Reach</th>
-                  <th>Conversion Rate</th>
-                  <th>Budget</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {campaigns.map((campaign) => (
-                  <tr key={campaign.name}>
-                    <td>{campaign.name}</td>
-                    <td>
-                      <span className={`badge ${
-                        campaign.status === 'active' ? 'badge-success' : 'badge-warning'
-                      }`}>
-                        {campaign.status}
-                      </span>
-                    </td>
-                    <td>{campaign.reach}</td>
-                    <td>{campaign.conversion}</td>
-                    <td>{campaign.budget}</td>
-                    <td>
-                      <button className="btn btn-sm btn-ghost">Edit</button>
-                      <button className="btn btn-sm btn-ghost">View</button>
-                    </td>
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <span className="loading loading-spinner loading-lg"></span>
+            </div>
+          ) : error ? (
+            <div className="alert alert-error">
+              <span>{error}</span>
+            </div>
+          ) : campaigns.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No campaigns found. Create your first campaign!</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="table w-full">
+                <thead>
+                  <tr>
+                    <th>Campaign Name</th>
+                    <th>Status</th>
+                    <th>Audience Reach</th>
+                    <th>Conversion Rate</th>
+                    <th>Budget</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {campaigns.map((campaign) => (
+                    <tr key={campaign.id}>
+                      <td>{campaign.name}</td>
+                      <td>
+                        <span className={`badge ${
+                          campaign.status === 'active' ? 'badge-success' : 'badge-warning'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                      </td>
+                      <td>{campaign.metrics?.reach || '0'}</td>
+                      <td>{campaign.metrics?.conversions || '0%'}</td>
+                      <td>${campaign.budget?.toLocaleString()}</td>
+                      <td>
+                        <button className="btn btn-sm btn-ghost">Edit</button>
+                        <button className="btn btn-sm btn-ghost">View</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

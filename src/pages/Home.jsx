@@ -92,7 +92,7 @@ const Home = () => {
           </div>
           <img
             src="/photo2.png"
-            className="max-w-sm rounded-lg" />
+            className="max-w-xl rounded-lg" />
         </div>
       </section>
 

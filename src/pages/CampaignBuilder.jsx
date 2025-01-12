@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { RiRocketLine, RiRadarLine, RiPieChartLine, RiSettings4Line, RiUserSmileLine, RiImageLine } from 'react-icons/ri';
+import { auth, db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 export default function CampaignBuilder() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPlatforms, setSelectedPlatforms] = useState(['facebook', 'instagram']);
   const [selectedAudience, setSelectedAudience] = useState(null);
@@ -105,26 +109,38 @@ export default function CampaignBuilder() {
   const handleLaunchCampaign = async () => {
     try {
       setCampaignData(prev => ({ ...prev, loading: true, error: null }));
-      const response = await fetch('http://localhost:5005/api/campaigns/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: campaignData.name,
-          objective: campaignData.objective,
-          startDate: campaignData.startDate,
-          endDate: campaignData.endDate,
-          description: campaignData.description,
-          platforms: selectedPlatforms,
-          audience: selectedAudience,
-          budget
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to launch campaign');
       
-      // Reset form and show success message
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('You must be logged in to launch a campaign');
+      }
+
+      // Create campaign object
+      const campaign = {
+        userId: user.uid,
+        name: campaignData.name,
+        objective: campaignData.objective,
+        startDate: campaignData.startDate,
+        endDate: campaignData.endDate,
+        description: campaignData.description,
+        platforms: selectedPlatforms,
+        audience: selectedAudience,
+        budget,
+        content: selectedContent,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        metrics: {
+          reach: '0',
+          engagement: '0%',
+          conversions: '0%',
+          roi: '0%'
+        }
+      };
+
+      // Save to Firebase
+      const campaignRef = await addDoc(collection(db, 'campaigns'), campaign);
+
+      // Reset form
       setCampaignData({
         name: '',
         objective: 'Brand Awareness',
@@ -138,6 +154,10 @@ export default function CampaignBuilder() {
       setSelectedPlatforms(['facebook', 'instagram']);
       setSelectedAudience(null);
       setBudget(10000);
+      setSelectedContent({});
+
+      // Navigate to dashboard
+      navigate('/dashboard');
       
     } catch (error) {
       setCampaignData(prev => ({ ...prev, error: error.message }));

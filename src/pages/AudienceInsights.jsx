@@ -142,10 +142,10 @@ export default function AudienceInsights() {
           <h3 className="font-bold">Connected Platforms</h3>
           <div className="mt-2 space-x-2">
             {socialData?.facebook && (
-              <span className="badge badge-primary">Facebook Page</span>
+              <span className="badge">Facebook Page</span>
             )}
             {socialData?.instagram && (
-              <span className="badge badge-primary">Instagram Business</span>
+              <span className="badge">Instagram Business</span>
             )}
           </div>
         </div>

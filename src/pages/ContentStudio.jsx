@@ -13,6 +13,12 @@ export default function ContentStudio() {
     loading: false,
     error: null,
   });
+  const [videoData, setVideoData] = useState({
+    preview: null,
+    loading: false,
+    error: null,
+    metadata: null,
+  });
   
   const templates = [
     {
@@ -41,7 +47,7 @@ export default function ContentStudio() {
     },
   ];
 
-  const recentContent = [
+  const [recentContent, setRecentContent] = useState([
     {
       title: 'Summer Collection Launch',
       type: 'Social Media Campaign',
@@ -60,7 +66,18 @@ export default function ContentStudio() {
       performance: '92% AI Score',
       date: '2 days ago',
     },
-  ];
+  ]);
+
+  // Function to add new content to recent list
+  const addToRecentContent = (content, type) => {
+    const newContent = {
+      title: prompt.slice(0, 30) + '...',
+      type: type,
+      performance: '100% AI Score',
+      date: 'Just now',
+    };
+    setRecentContent(prev => [newContent, ...prev.slice(0, 4)]); // Keep last 5 items
+  };
 
   const getPlaceholderText = () => {
     switch (contentType) {
@@ -127,6 +144,7 @@ export default function ContentStudio() {
         : `<div>${data.content}</div>`;
         
       setEmailData(prev => ({ ...prev, preview: cleanContent }));
+      addToRecentContent(cleanContent, 'Email Campaign');
 
     } catch (error) {
       setEmailData(prev => ({ ...prev, error: error.message }));
@@ -224,6 +242,39 @@ export default function ContentStudio() {
     length: 'medium',
     includeHashtags: true,
   });
+
+  const generateVideoScript = async () => {
+    try {
+      setVideoData(prev => ({ ...prev, loading: true, error: null }));
+      const response = await fetch('http://localhost:5005/api/content/video-script', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          advancedOptions: {
+            tone: advancedOptions.tone,
+            length: advancedOptions.length,
+          },
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate video script');
+      
+      const data = await response.json();
+      setVideoData(prev => ({ 
+        ...prev, 
+        preview: data.content,
+        metadata: data.metadata,
+      }));
+      addToRecentContent(data.content, 'Video Script');
+    } catch (error) {
+      setVideoData(prev => ({ ...prev, error: error.message }));
+    } finally {
+      setVideoData(prev => ({ ...prev, loading: false }));
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -358,6 +409,14 @@ export default function ContentStudio() {
                       </button>
                     )}
                   </>
+                ) : contentType === 'video' ? (
+                  <button 
+                    className={`btn btn-primary ${videoData.loading ? 'loading' : ''}`}
+                    onClick={generateVideoScript}
+                    disabled={!prompt || videoData.loading}
+                  >
+                    Generate Script
+                  </button>
                 ) : (
                   <>
                     <button 
@@ -447,10 +506,12 @@ export default function ContentStudio() {
                 <div className="bg-white rounded-lg p-4 shadow-inner">
                   <h3 className="font-semibold mb-4">Email Campaign Preview</h3>
                   {emailData.preview ? (
-                    <div 
-                      className="prose max-w-none"
-                      dangerouslySetInnerHTML={{ __html: emailData.preview }}
-                    />
+                    <div className="max-h-[500px] overflow-y-auto">
+                      <div 
+                        className="prose max-w-none"
+                        dangerouslySetInnerHTML={{ __html: emailData.preview }}
+                      />
+                    </div>
                   ) : (
                     <div className="alert alert-info">
                       <div>
@@ -509,16 +570,44 @@ export default function ContentStudio() {
               ) : contentType === 'video' ? (
                 <div className="bg-white rounded-lg p-4 shadow-inner">
                   <h3 className="font-semibold mb-4">Video Script Preview</h3>
-                  <div className="alert alert-info">
-                    <div>
-                      <h3 className="font-bold">Video Content Tips</h3>
-                      <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                        <li>Optimal video length</li>
-                        <li>Script structure suggestions</li>
-                        <li>Key points to cover</li>
-                      </ul>
+                  {videoData.preview ? (
+                    <div className="space-y-4">
+                      <div className="prose max-w-none whitespace-pre-line max-h-[500px] overflow-y-auto">
+                        {videoData.preview}
+                      </div>
+                      {videoData.metadata && (
+                        <div className="alert alert-info mt-4">
+                          <div>
+                            <h3 className="font-bold">Script Details</h3>
+                            <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                              <li>Estimated Duration: {videoData.metadata.estimatedDuration}</li>
+                              <li>Tone: {videoData.metadata.tone}</li>
+                              <li>Generated: {new Date(videoData.metadata.generatedAt).toLocaleString()}</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="alert alert-info">
+                      <div>
+                        <h3 className="font-bold">Video Script Tips</h3>
+                        <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                          <li>Start with a strong hook</li>
+                          <li>Keep scenes concise and engaging</li>
+                          <li>Include clear visual directions</li>
+                          <li>End with a compelling call-to-action</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                  {videoData.error && (
+                    <div className="alert alert-error mt-4">
+                      <div className="flex-1">
+                        <label>{videoData.error}</label>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="bg-white rounded-lg p-4 shadow-inner">

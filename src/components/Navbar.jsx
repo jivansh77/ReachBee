@@ -1,6 +1,14 @@
 import { Link } from 'react-router-dom';
+import { auth } from '../firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 export default function Navbar() {
+  const [user] = useAuthState(auth);
+
+  const handleSignOut = () => {
+    auth.signOut();
+  };
+
   return (
     <div className="navbar bg-base-200 shadow-md">
       {/* Navbar Start - Logo & Mobile Menu */}
@@ -36,12 +44,12 @@ export default function Navbar() {
         <Link to="/" className="cursor-pointer ml-4">
           <img 
             src="/logo.png"
-            alt="Logo"
+            alt="ReachBee Logo"
             className="w-8 h-8"
           />
         </Link>
         <Link to="/" className="btn btn-ghost -ml-2">
-          <span className="text-2xl font-bold">Company</span>
+          <span className="text-2xl font-bold">ReachBee</span>
         </Link>
       </div>
 
@@ -55,9 +63,13 @@ export default function Navbar() {
         </ul>
       </div>
 
-      {/* Navbar End - Sign In Button */}
+      {/* Navbar End - Sign In/Out Button */}
       <div className="navbar-end">
-        <Link to="/signin" className="btn btn-primary">Sign In</Link>
+        {user ? (
+          <button onClick={handleSignOut} className="btn btn-primary">Sign Out</button>
+        ) : (
+          <Link to="/signin" className="btn btn-primary">Sign In</Link>
+        )}
       </div>
     </div>
   );

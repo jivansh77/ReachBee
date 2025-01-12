@@ -6,23 +6,23 @@ const About = () => {
   const features = [
     {
       icon: <FiTarget />,
-      title: 'Smart Analysis',
-      description: 'Our AI algorithms provide detailed insights into content creation'
+      title: 'Precise Targeting',
+      description: 'AI-powered audience segmentation and targeting capabilities'
     },
     {
       icon: <FaBrain />,
-      title: 'AI-Powered Learning',
-      description: 'Advanced machine learning models that understand and analyze content'
+      title: 'Smart Content',
+      description: 'AI-generated personalized content that converts'
     },
     {
       icon: <FiTrendingUp />,
-      title: 'Pattern Recognition',
-      description: 'Identify trends and patterns'
+      title: 'Real-time Optimization',
+      description: 'Continuous campaign optimization for maximum ROI'
     },
     {
       icon: <FiShield />,
-      title: 'Comprehensive Coverage',
-      description: 'Complete analysis of content cration'
+      title: 'Data Security',
+      description: 'Enterprise-grade security for your marketing data'
     }
   ];
 
@@ -35,10 +35,10 @@ const About = () => {
             <div className="lg:w-1/2">
               <h1 className="text-5xl font-bold mb-6">About Us</h1>
               <p className="text-lg mb-8">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+                We're revolutionizing digital marketing with artificial intelligence. Our platform combines cutting-edge AI technology with marketing expertise to help businesses identify their perfect audience, create compelling content, and optimize campaigns in real-time.
               </p>
               <p className="text-lg mb-8">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                Founded by marketing experts and AI specialists, we're on a mission to make advanced marketing technology accessible to businesses of all sizes.
               </p>
             </div>
             <div className="lg:w-1/2">
@@ -77,7 +77,7 @@ const About = () => {
             <div className="card-body">
               <h2 className="text-4xl font-bold mb-4 text-center">Our Mission</h2>
               <p className="text-lg text-center max-w-3xl mx-auto">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+                To empower businesses with AI-driven marketing solutions that deliver personalized experiences, maximize conversions, and drive sustainable growth through data-driven decision making.
               </p>
             </div>
           </div>

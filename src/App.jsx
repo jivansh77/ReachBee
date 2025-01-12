@@ -13,6 +13,8 @@ import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import About from './pages/About'
 import BusinessForm from './pages/BusinessForm'
+import Contact from './pages/Contact'
+import Features from './pages/Features'
 
 const AppContent = () => {
   const location = useLocation();
@@ -38,6 +40,8 @@ const AppContent = () => {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/about" element={<About />} />
             <Route path="/business-form" element={<BusinessForm />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/features" element={<Features />} />
           </Routes>
         </main>
       </div>

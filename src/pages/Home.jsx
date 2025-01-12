@@ -5,73 +5,72 @@ import useTypewriter from '../hooks/useTypewriter';
 
 const Home = () => {
   const titleText = useTypewriter([
-    "Lorem Ipsum Dolor",
-    "Sit Amet Consectetur",
-    "Adipiscing Elit",
-    "Sed Do Eiusmod"
+    "Create Personalized Content",
+    "Maximize Conversions",
+    "Boost Customer Satisfaction"
   ], 100, 50, 3000);
   const [openFaq, setOpenFaq] = useState(null);
 
   const features = [
     { 
       icon: <FiFileText />, 
-      title: 'Feature One', 
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit' 
+      title: 'Smart Audience Analysis', 
+      description: 'Identify and understand your target audience with AI-powered insights' 
     },
     { 
       icon: <FiCpu />, 
-      title: 'Feature Two', 
-      description: 'Sed do eiusmod tempor incididunt ut labore et dolore' 
+      title: 'Personalized Content', 
+      description: 'Create tailored marketing content that resonates with your audience' 
     },
     { 
       icon: <FiTrendingUp />, 
-      title: 'Feature Three', 
-      description: 'Ut enim ad minim veniam, quis nostrud exercitation' 
+      title: 'Real-time Adaptation', 
+      description: 'Automatically adjust campaigns based on performance metrics' 
     },
     { 
       icon: <FiShield />, 
-      title: 'Feature Four', 
-      description: 'Duis aute irure dolor in reprehenderit in voluptate' 
+      title: 'Conversion Optimization', 
+      description: 'Maximize ROI with AI-driven campaign optimization' 
     },
   ];
 
   const testimonials = [
     {
-      name: 'John Doe',
-      role: 'Professional',
+      name: 'Sarah Chen',
+      role: 'Marketing Director',
       image: 'https://api.uifaces.co/our-content/donated/xZ4wg2Xj.jpg',
-      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.'
+      content: "ReachBee has transformed our marketing strategy. The AI-powered insights helped us increase our conversion rates by 45% in just three months."
     },
     {
-      name: 'Jane Smith',
-      role: 'Manager',
+      name: 'Michael Rodriguez',
+      role: 'Digital Marketing Manager',
       image: 'https://randomuser.me/api/portraits/men/42.jpg',
-      content: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip.'
+      content: "The personalized content generation is incredible. We're saving hours of work while delivering more engaging campaigns to our audience."
     },
     {
-      name: 'Alice Johnson',
-      role: 'Director',
+      name: 'Emily Thompson',
+      role: 'E-commerce Director',
       image: 'https://randomuser.me/api/portraits/women/32.jpg',
-      content: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.'
+      content: "The real-time optimization has been a game-changer for our campaigns. Our ROI has improved significantly since we started using ReachBee."
     }
   ];
 
   const faqs = [
     {
-      question: 'Lorem ipsum dolor sit amet?',
-      answer: 'Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+      question: 'How does the AI identify target audiences?',
+      answer: 'Our AI analyzes customer data, behavior patterns, and market trends to create detailed audience segments and personas.'
     },
     {
-      question: 'Ut enim ad minim veniam?',
-      answer: 'Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+      question: 'Can I customize the content generation?',
+      answer: 'Yes, you can set brand guidelines, tone preferences, and specific marketing goals to guide the AI content creation.'
     },
     {
-      question: 'Duis aute irure dolor?',
-      answer: 'In reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.'
+      question: 'How quickly does the system adapt to changes?',
+      answer: 'Our platform monitors campaign performance in real-time and makes instant adjustments to optimize results.'
     },
     {
-      question: 'Excepteur sint occaecat?',
-      answer: 'Cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+      question: 'What types of campaigns can I create?',
+      answer: 'You can create email, social media, content marketing, and digital advertising campaigns, all optimized by our AI.'
     }
   ];
 
@@ -88,7 +87,7 @@ const Home = () => {
               <span className="animate-blink">|</span>
             </h1>
             <p className="py-6">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+              Transform your marketing strategy with ReachBee's AI-powered platform. Identify your perfect audience, create personalized content, and optimize campaigns in real-time for maximum impact and ROI.
             </p>
             <Link to="/dashboard" className="btn btn-primary">
               Get Started
@@ -100,7 +99,7 @@ const Home = () => {
       {/* Features Section */}
       <section className="py-20 bg-base-100">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-12">Ace Your Next Exam</h2>
+          <h2 className="text-4xl font-bold text-center mb-12">Transform Your Marketing Strategy</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="card bg-base-200 shadow-xl">
@@ -158,19 +157,19 @@ const Home = () => {
                     <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>State-of-the-art ML models for content creation</span>
+                    <span>Next-gen AI models for audience analysis and content creation</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>95% accuracy in pattern recognition</span>
+                    <span>Real-time optimization with 99% accuracy</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>Real-time processing and analysis</span>
+                    <span>Predictive analytics for campaign performance</span>
                   </li>
                 </ul>
               </div>
@@ -178,25 +177,25 @@ const Home = () => {
 
             <div className="card bg-base-200 shadow-xl">
               <div className="card-body">
-                <h3 className="card-title text-2xl mb-4">Comprehensive Analysis</h3>
+                <h3 className="card-title text-2xl mb-4">Marketing Excellence</h3>
                 <ul className="space-y-4">
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>Detailed distribution reports</span>
+                    <span>Multi-channel campaign management</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>Historical analysis</span>
+                    <span>Personalized content at scale</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <svg className="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>Similarity detection between content</span>
+                    <span>Advanced audience segmentation and targeting</span>
                   </li>
                 </ul>
               </div>

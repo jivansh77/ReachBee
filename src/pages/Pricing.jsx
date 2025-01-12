@@ -9,14 +9,14 @@ const Pricing = () => {
       name: 'Basic',
       price: '₹29',
       period: '/month',
-      description: 'Perfect for individuals',
+      description: 'Perfect for small businesses',
       features: [
-        'Lorem ipsum dolor sit amet',
-        'Consectetur adipiscing elit',
-        'Sed do eiusmod tempor incididunt',
-        'Ut labore et dolore magna aliqua',
-        'Ut enim ad minim veniam',
-        'Quis nostrud exercitation ullamco'
+        'AI audience analysis',
+        'Basic content generation',
+        'Email campaign optimization',
+        'Real-time analytics',
+        'Basic reporting',
+        'Email support'
       ],
       buttonText: 'Get Started',
       highlighted: false
@@ -25,16 +25,16 @@ const Pricing = () => {
       name: 'Pro',
       price: '₹99',
       period: '/month',
-      description: 'Ideal for small institutions',
+      description: 'Ideal for growing businesses',
       features: [
-        'Lorem ipsum dolor sit amet',
-        'Consectetur adipiscing elit',
-        'Sed do eiusmod tempor incididunt',
-        'Ut labore et dolore magna aliqua',
-        'Ut enim ad minim veniam',
-        'Quis nostrud exercitation ullamco',
-        'Duis aute irure dolor in reprehenderit',
-        'In voluptate velit esse cillum dolore'
+        'Everything in Basic',
+        'Advanced audience segmentation',
+        'Multi-channel campaigns',
+        'A/B testing automation',
+        'Custom content templates',
+        'Priority support',
+        'Advanced analytics',
+        'API access'
       ],
       buttonText: 'Go Pro',
       highlighted: true
@@ -43,16 +43,16 @@ const Pricing = () => {
       name: 'Enterprise',
       price: 'Custom',
       period: '',
-      description: 'Tailored solutions for universities and large institutions',
+      description: 'For large organizations with complex needs',
       features: [
-        'Lorem ipsum dolor sit amet',
-        'Consectetur adipiscing elit',
-        'Sed do eiusmod tempor incididunt',
-        'Ut labore et dolore magna aliqua',
-        'Ut enim ad minim veniam',
-        'Quis nostrud exercitation ullamco',
-        'Duis aute irure dolor in reprehenderit',
-        'In voluptate velit esse cillum dolore'
+        'Everything in Pro',
+        'Custom AI model training',
+        'Dedicated success manager',
+        'White-label solutions',
+        'Custom integrations',
+        'Advanced security features',
+        'SLA guarantees',
+        '24/7 premium support'
       ],
       buttonText: 'Contact Sales',
       highlighted: false
@@ -124,15 +124,15 @@ const Pricing = () => {
               {[
                 {
                   question: "Can I switch plans later?",
-                  answer: "Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle."
+                  answer: "Yes, you can upgrade or downgrade your plan at any time. Your AI models and campaign data will be preserved when switching plans."
                 },
                 {
                   question: "What payment methods do you accept?",
                   answer: "We accept all major credit cards, debit cards, and UPI payments. Enterprise customers can opt for invoice-based payments."
                 },
                 {
-                  question: "Do you offer educational discounts?",
-                  answer: "Yes, we offer special discounts for educational institutions. Contact our sales team for more information."
+                  question: "Do you offer a free trial?",
+                  answer: "Yes, we offer a 14-day free trial on our Basic and Pro plans so you can experience the power of AI-driven marketing."
                 }
               ].map((faq, index) => (
                 <div key={index} className="rounded-3xl bg-base-100 shadow-sm">

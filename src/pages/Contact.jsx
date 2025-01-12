@@ -54,9 +54,10 @@ const Contact = () => {
                     <option value="" disabled>Select a topic</option>
                     <option value="general">General Inquiry</option>
                     <option value="support">Technical Support</option>
-                    <option value="pricing">Pricing Questions</option>
-                    <option value="feature">Feature Request</option>
-                    <option value="partnership">Partnership</option>
+                    <option value="pricing">Pricing & Plans</option>
+                    <option value="demo">Request Demo</option>
+                    <option value="integration">Integration Questions</option>
+                    <option value="partnership">Partnership Opportunities</option>
                   </select>
                 </div>
 
@@ -86,8 +87,8 @@ const Contact = () => {
                     <FiMail className="text-2xl text-primary mt-1" />
                     <div>
                       <h3 className="font-semibold mb-1">Email Us</h3>
-                      <p className="text-base-content/70">support@example.com</p>
-                      <p className="text-base-content/70">info@example.com</p>
+                      <p className="text-base-content/70">support@aimarketing.com</p>
+                      <p className="text-base-content/70">sales@aimarketing.com</p>
                     </div>
                   </div>
                   
@@ -96,7 +97,7 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold mb-1">Call Us</h3>
                       <p className="text-base-content/70">+91 (800) 123-4567</p>
-                      <p className="text-base-content/70">Mon-Fri: 9:00 AM - 6:00 PM</p>
+                      <p className="text-base-content/70">24/7 Support Available</p>
                     </div>
                   </div>
 
@@ -105,8 +106,8 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold mb-1">Visit Us</h3>
                       <p className="text-base-content/70">
-                        123 Tech Park, Sector 15<br />
-                        Mumbai, Maharashtra 400001<br />
+                        123 Innovation Hub, Cyber City<br />
+                        Gurugram, Haryana 122002<br />
                         India
                       </p>
                     </div>

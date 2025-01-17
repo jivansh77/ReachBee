@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiFileText, FiCpu, FiTrendingUp, FiShield } from 'react-icons/fi';
 import useTypewriter from '../hooks/useTypewriter';
+import EventTrigger from '../components/EventTrigger';
 
 const Home = () => {
   const titleText = useTypewriter([
@@ -76,6 +77,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
+      <EventTrigger />
       {/* Hero Section */}
       <section className="hero bg-base-200 min-h-screen">
         <div className="hero-content flex-col lg:flex-row">

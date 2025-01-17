@@ -6,7 +6,7 @@ const TrendingEventModal = ({ event, closeModal }) => {
   if (!event) return null;
 
   const handleCreateContent = () => {
-    navigate(`/content-studio/template?event=${event.id}`);
+    navigate(`/content-generator?eventId=${event.id}`);
     closeModal();
   };
 

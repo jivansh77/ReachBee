@@ -17,6 +17,7 @@ import Contact from './pages/Contact'
 import Features from './pages/Features'
 import TrendingEvents from './components/EventTrigger'
 import FineTunePage from './pages/FineTunePage'
+import ContentGenerator from './pages/ContentGenerator'
 
 const AppContent = () => {
   const location = useLocation();
@@ -46,6 +47,7 @@ const AppContent = () => {
             <Route path="/features" element={<Features />} />
             <Route path="/finetune" element={<FineTunePage />} />
             <Route path="/event-trigger" element={<TrendingEvents />} />
+            <Route path="/content-generator" element={<ContentGenerator />} />
           </Routes>
         </main>
       </div>

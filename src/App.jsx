@@ -16,10 +16,11 @@ import BusinessForm from './pages/BusinessForm'
 import Contact from './pages/Contact'
 import Features from './pages/Features'
 import TrendingEvents from './components/EventTrigger'
+import FineTunePage from './pages/FineTunePage'
 
 const AppContent = () => {
   const location = useLocation();
-  const showSidebar = ['/dashboard', '/audience-insights', '/content-studio', '/campaign-builder', '/analytics'].includes(location.pathname);
+  const showSidebar = ['/dashboard', '/audience-insights', '/content-studio', '/campaign-builder', '/analytics', '/finetune'].includes(location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-base-100 to-base-200">
@@ -43,6 +44,7 @@ const AppContent = () => {
             <Route path="/business-form" element={<BusinessForm />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/features" element={<Features />} />
+            <Route path="/finetune" element={<FineTunePage />} />
           </Routes>
         </main>
       </div>

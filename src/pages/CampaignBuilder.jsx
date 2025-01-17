@@ -52,18 +52,44 @@ export default function CampaignBuilder() {
         );
 
         const querySnapshot = await getDocs(contentQuery);
-        const savedContent = [];
+        const savedContent = {
+          social: [],
+          email: [],
+          video: [],
+          ad: []
+        };
         
         querySnapshot.forEach((doc) => {
-          savedContent.push({
-            id: doc.id,
-            ...doc.data()
-          });
+          const data = { id: doc.id, ...doc.data() };
+          
+          switch(data.type) {
+            case 'social':
+              savedContent.social.push({
+                id: data.id,
+                platform: data.platform,
+                content: data.content,
+                createdAt: data.createdAt,
+                eventTitle: data.eventTitle
+              });
+              break;
+            case 'video':
+              savedContent.video.push({
+                id: data.id,
+                title: data.title,
+                script: data.script,
+                createdAt: data.createdAt,
+                eventTitle: data.eventTitle
+              });
+              break;
+            // Keep existing email and ad cases
+            default:
+              break;
+          }
         });
 
         setContentLibrary(prev => ({
           ...prev,
-          social: savedContent.filter(content => content.type === 'social')
+          ...savedContent
         }));
 
       } catch (error) {

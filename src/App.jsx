@@ -23,7 +23,7 @@ import getTweetsData from './TwitterClient'
 
 const AppContent = () => {
   const location = useLocation();
-  const showSidebar = ['/dashboard', '/audience-insights', '/content-studio', '/campaign-builder', '/analytics', '/finetune'].includes(location.pathname);
+  const showSidebar = ['/dashboard', '/audience-insights', '/content-studio', '/campaign-builder', '/analytics', '/finetune', '/campaign-builder/template'].includes(location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-base-100 to-base-200">
@@ -39,6 +39,7 @@ const AppContent = () => {
             <Route path="/audience-insights" element={<AudienceInsights />} />
             <Route path="/content-studio" element={<ContentStudio />} />
             <Route path="/campaign-builder" element={<CampaignBuilder />} />
+            <Route path="/campaign-builder/template" element={<ContentGenerator />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/signin" element={<SignIn />} />
@@ -49,7 +50,6 @@ const AppContent = () => {
             <Route path="/features" element={<Features />} />
             <Route path="/finetune" element={<FineTunePage />} />
             <Route path="/event-trigger" element={<TrendingEvents />} />
-            <Route path="/content-generator" element={<ContentGenerator />} />
           </Routes>
         </main>
       </div>

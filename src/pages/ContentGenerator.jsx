@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { auth, db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
@@ -108,6 +110,51 @@ const ContentGenerator = () => {
     }
   };
 
+  const handleSaveToCampaign = async () => {
+    try {
+      setLoading(true);
+      const user = auth.currentUser;
+      
+      if (!user) {
+        throw new Error('You must be logged in to save content');
+      }
+
+      if (!generatedContent.socialMedia || !generatedContent.videoScript) {
+        throw new Error('No content to save');
+      }
+
+      // Save social media content
+      await addDoc(collection(db, 'content'), {
+        userId: user.uid,
+        type: 'social',
+        content: generatedContent.socialMedia,
+        platform: 'multiple',
+        createdAt: new Date().toISOString(),
+        eventTitle: eventData.title,
+        eventDescription: eventData.description
+      });
+
+      // Save video content
+      await addDoc(collection(db, 'content'), {
+        userId: user.uid,
+        type: 'video',
+        title: `Video for ${eventData.title}`,
+        script: generatedContent.videoScript,
+        createdAt: new Date().toISOString(),
+        eventTitle: eventData.title,
+        eventDescription: eventData.description
+      });
+
+      // Show success message or handle UI feedback
+      alert('Content saved successfully!');
+    } catch (error) {
+      console.error('Error saving content:', error);
+      setError(error.message || 'Failed to save content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -168,6 +215,20 @@ const ContentGenerator = () => {
               </>
             ) : (
               'Regenerate Content'
+            )}
+          </button>
+          <button 
+            className="btn btn-success"
+            onClick={handleSaveToCampaign}
+            disabled={loading || !generatedContent.socialMedia || !generatedContent.videoScript}
+          >
+            {loading ? (
+              <>
+                <span className="loading loading-spinner loading-sm"></span>
+                Saving...
+              </>
+            ) : (
+              'Save to Campaign'
             )}
           </button>
         </div>

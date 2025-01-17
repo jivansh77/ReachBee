@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RiRocketLine, RiRadarLine, RiPieChartLine, RiSettings4Line, RiUserSmileLine, RiImageLine } from 'react-icons/ri';
 import { auth, db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 export default function CampaignBuilder() {
@@ -11,15 +11,9 @@ export default function CampaignBuilder() {
   const [selectedAudience, setSelectedAudience] = useState(null);
   const [budget, setBudget] = useState(10000);
   const [selectedContent, setSelectedContent] = useState({});
+  const [activeTab, setActiveTab] = useState('social');
   const [contentLibrary, setContentLibrary] = useState({
-    social: [
-      {
-        id: 1,
-        platform: 'instagram',
-        content: '✨ Discover innovation at its finest! Our latest collection brings together style and sustainability.',
-        preview: null
-      }
-    ],
+    social: [],
     email: [
       {
         id: 1,
@@ -45,6 +39,40 @@ export default function CampaignBuilder() {
       }
     ]
   });
+
+  useEffect(() => {
+    const fetchSavedContent = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const contentQuery = query(
+          collection(db, 'content'),
+          where('userId', '==', user.uid)
+        );
+
+        const querySnapshot = await getDocs(contentQuery);
+        const savedContent = [];
+        
+        querySnapshot.forEach((doc) => {
+          savedContent.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+
+        setContentLibrary(prev => ({
+          ...prev,
+          social: savedContent.filter(content => content.type === 'social')
+        }));
+
+      } catch (error) {
+        console.error('Error fetching saved content:', error);
+      }
+    };
+
+    fetchSavedContent();
+  }, []);
 
   const steps = [
     { id: 1, name: 'Campaign Details', icon: RiRocketLine },
@@ -361,80 +389,84 @@ export default function CampaignBuilder() {
                   Content Selection
                 </h2>
                 <div className="tabs tabs-boxed mb-6">
-                  <a className="tab tab-active">Social Media</a>
-                  <a className="tab">Email Campaigns</a>
-                  <a className="tab">Video Content</a>
-                  <a className="tab">Ad Creatives</a>
+                  <a 
+                    className={`tab ${activeTab === 'social' ? 'tab-active' : ''}`}
+                    onClick={() => setActiveTab('social')}
+                  >
+                    Social Media
+                  </a>
+                  <a 
+                    className={`tab ${activeTab === 'email' ? 'tab-active' : ''}`}
+                    onClick={() => setActiveTab('email')}
+                  >
+                    Email Campaigns
+                  </a>
+                  <a 
+                    className={`tab ${activeTab === 'video' ? 'tab-active' : ''}`}
+                    onClick={() => setActiveTab('video')}
+                  >
+                    Video Content
+                  </a>
+                  <a 
+                    className={`tab ${activeTab === 'ad' ? 'tab-active' : ''}`}
+                    onClick={() => setActiveTab('ad')}
+                  >
+                    Ad Creatives
+                  </a>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Content Library */}
                   <div>
                     <h3 className="font-semibold mb-4">Content Library</h3>
-                    <div className="space-y-4">
-                      {Object.entries(contentLibrary).map(([type, items]) => (
-                        <div key={type}>
-                          <h4 className="font-medium mb-2 capitalize">{type} Content</h4>
-                          {items.map((item) => (
-                            <div key={item.id} className="card bg-base-200 mb-3">
-                              <div className="card-body">
-                                {type === 'email' ? (
-                                  <>
-                                    <h5 className="font-medium">{item.subject}</h5>
-                                    <div className="text-sm" dangerouslySetInnerHTML={{ __html: item.content }} />
-                                    <div className="card-actions justify-end">
-                                      <button 
-                                        className={`btn btn-sm ${selectedContent[type]?.includes(item.id) ? 'btn-primary' : 'btn-outline'}`}
-                                        onClick={() => setSelectedContent(prev => ({
-                                          ...prev,
-                                          [type]: prev[type]?.includes(item.id)
-                                            ? prev[type].filter(id => id !== item.id)
-                                            : [...(prev[type] || []), item.id]
-                                        }))}
-                                      >
-                                        {selectedContent[type]?.includes(item.id) ? 'Selected' : 'Select'}
-                                      </button>
-                                    </div>
-                                  </>
-                                ) : type === 'video' ? (
-                                  <>
-                                    <h5 className="font-medium">{item.title}</h5>
-                                    <p className="text-sm">{item.script}</p>
-                                    <div className="card-actions justify-end">
-                                      <button 
-                                        className={`btn btn-sm ${selectedContent[type]?.includes(item.id) ? 'btn-primary' : 'btn-outline'}`}
-                                        onClick={() => setSelectedContent(prev => ({
-                                          ...prev,
-                                          [type]: prev[type]?.includes(item.id)
-                                            ? prev[type].filter(id => id !== item.id)
-                                            : [...(prev[type] || []), item.id]
-                                        }))}
-                                      >
-                                        {selectedContent[type]?.includes(item.id) ? 'Selected' : 'Select'}
-                                      </button>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <h5 className="font-medium capitalize">{item.platform} Post</h5>
-                                    <p className="text-sm">{item.content}</p>
-                                    <div className="card-actions justify-end">
-                                      <button 
-                                        className={`btn btn-sm ${selectedContent[type]?.includes(item.id) ? 'btn-primary' : 'btn-outline'}`}
-                                        onClick={() => setSelectedContent(prev => ({
-                                          ...prev,
-                                          [type]: prev[type]?.includes(item.id)
-                                            ? prev[type].filter(id => id !== item.id)
-                                            : [...(prev[type] || []), item.id]
-                                        }))}
-                                      >
-                                        {selectedContent[type]?.includes(item.id) ? 'Selected' : 'Select'}
-                                      </button>
-                                    </div>
-                                  </>
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                      {contentLibrary[activeTab]?.map((item) => (
+                        <div key={item.id} className="card bg-base-200 mb-3">
+                          <div className="card-body">
+                            {activeTab === 'social' ? (
+                              <>
+                                <h5 className="font-medium capitalize">{item.platform} Post</h5>
+                                {item.imageUrl && (
+                                  <img 
+                                    src={item.imageUrl} 
+                                    alt="Post image" 
+                                    className="w-full aspect-square object-cover rounded-lg mb-3"
+                                  />
                                 )}
-                              </div>
+                                <p className="text-sm">{item.content}</p>
+                                <div className="text-xs text-gray-500 mt-2">
+                                  Created: {new Date(item.createdAt).toLocaleDateString()}
+                                </div>
+                              </>
+                            ) : activeTab === 'email' ? (
+                              <>
+                                <h5 className="font-medium">{item.subject}</h5>
+                                <div className="text-sm" dangerouslySetInnerHTML={{ __html: item.content }} />
+                              </>
+                            ) : activeTab === 'video' ? (
+                              <>
+                                <h5 className="font-medium">{item.title}</h5>
+                                <p className="text-sm">{item.script}</p>
+                              </>
+                            ) : (
+                              <>
+                                <h5 className="font-medium capitalize">{item.platform} Ad</h5>
+                                <p className="text-sm">{item.content}</p>
+                              </>
+                            )}
+                            <div className="card-actions justify-end mt-4">
+                              <button 
+                                className={`btn btn-sm ${selectedContent[activeTab]?.includes(item.id) ? 'btn-primary' : 'btn-outline'}`}
+                                onClick={() => setSelectedContent(prev => ({
+                                  ...prev,
+                                  [activeTab]: prev[activeTab]?.includes(item.id)
+                                    ? prev[activeTab].filter(id => id !== item.id)
+                                    : [...(prev[activeTab] || []), item.id]
+                                }))}
+                              >
+                                {selectedContent[activeTab]?.includes(item.id) ? 'Selected' : 'Select'}
+                              </button>
                             </div>
-                          ))}
+                          </div>
                         </div>
                       ))}
                     </div>

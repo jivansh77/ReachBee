@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RiMagicLine, RiFileTextLine, RiImageLine, RiVideoLine } from 'react-icons/ri';
+import { usePollinationsImage } from '@pollinations/react';
+import { auth, db } from '../firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 export default function ContentStudio() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -19,7 +22,33 @@ export default function ContentStudio() {
     error: null,
     metadata: null,
   });
-  
+  const [socialMediaData, setSocialMediaData] = useState({
+    preview: null,
+    loading: false,
+    error: null,
+    platform: 'instagram',
+    imagePrompt: '',
+    savingToCampaign: false
+  });
+
+  // Move the image generation hook inside the component
+  const imagePrompt = prompt ? `Generate an image for ${socialMediaData.platform} post for best branding based on the following idea: ${prompt}` : '';
+  const generatedImageUrl = usePollinationsImage(imagePrompt, {
+    width: 512,
+    height: 512,
+    seed: Math.floor(Math.random() * 1000000), // Random seed for variety
+    model: 'flux',
+  });
+
+  useEffect(() => {
+    if (prompt) {
+      setSocialMediaData(prev => ({
+        ...prev,
+        imagePrompt: prompt
+      }));
+    }
+  }, [prompt]);
+
   const templates = [
     {
       id: 1,
@@ -200,7 +229,12 @@ export default function ContentStudio() {
 
   const generateContent = async () => {
     try {
-      setEmailData(prev => ({ ...prev, loading: true, error: null }));
+      setSocialMediaData(prev => ({ 
+        ...prev, 
+        loading: true, 
+        error: null
+      }));
+
       const response = await fetch('http://localhost:5005/api/content/generate', {
         method: 'POST',
         headers: {
@@ -216,22 +250,20 @@ export default function ContentStudio() {
       if (!response.ok) throw new Error('Failed to generate content');
       
       const data = await response.json();
-      // Handle the generated content based on type
-      switch (contentType) {
-        case 'social':
-          // Update UI with social media content
-          break;
-        case 'ad':
-          // Update UI with ad content
-          break;
-        case 'video':
-          // Update UI with video script
-          break;
+      
+      if (contentType === 'social') {
+        setSocialMediaData(prev => ({
+          ...prev,
+          preview: data.content,
+          loading: false
+        }));
+        
+        addToRecentContent(data.content, 'Social Media Post');
       }
     } catch (error) {
-      setEmailData(prev => ({ ...prev, error: error.message }));
+      setSocialMediaData(prev => ({ ...prev, error: error.message }));
     } finally {
-      setEmailData(prev => ({ ...prev, loading: false }));
+      setSocialMediaData(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -273,6 +305,53 @@ export default function ContentStudio() {
       setVideoData(prev => ({ ...prev, error: error.message }));
     } finally {
       setVideoData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Update the platform click handler
+  const handlePlatformChange = (platform) => {
+    setSocialMediaData(prev => ({ 
+      ...prev, 
+      platform
+    }));
+  };
+
+  // Add save to campaign function
+  const handleSaveToCampaign = async () => {
+    if (!prompt || !socialMediaData.preview) {
+      alert('Please generate content before saving to campaign');
+      return;
+    }
+
+    try {
+      setSocialMediaData(prev => ({ ...prev, savingToCampaign: true }));
+      
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('You must be logged in to save content');
+      }
+
+      // Create content object
+      const content = {
+        userId: user.uid,
+        type: 'social',
+        platform: socialMediaData.platform,
+        content: socialMediaData.preview,
+        prompt: prompt,
+        imageUrl: generatedImageUrl,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Save to Firebase
+      await addDoc(collection(db, 'content'), content);
+
+      // Show success message
+      alert('Content saved to campaign library!');
+      
+    } catch (error) {
+      alert('Error saving to campaign: ' + error.message);
+    } finally {
+      setSocialMediaData(prev => ({ ...prev, savingToCampaign: false }));
     }
   };
 
@@ -530,14 +609,34 @@ export default function ContentStudio() {
                 <>
                   <h3 className="font-semibold">Live Platform Previews</h3>
                   <div className="tabs tabs-boxed">
-                    <a className="tab tab-active">Instagram</a>
-                    <a className="tab">Facebook</a>
-                    <a className="tab">Twitter</a>
-                    <a className="tab">LinkedIn</a>
+                    <a 
+                      className={`tab ${socialMediaData.platform === 'instagram' ? 'tab-active' : ''}`}
+                      onClick={() => handlePlatformChange('instagram')}
+                    >
+                      Instagram
+                    </a>
+                    <a 
+                      className={`tab ${socialMediaData.platform === 'facebook' ? 'tab-active' : ''}`}
+                      onClick={() => handlePlatformChange('facebook')}
+                    >
+                      Facebook
+                    </a>
+                    <a 
+                      className={`tab ${socialMediaData.platform === 'twitter' ? 'tab-active' : ''}`}
+                      onClick={() => handlePlatformChange('twitter')}
+                    >
+                      Twitter
+                    </a>
+                    <a 
+                      className={`tab ${socialMediaData.platform === 'linkedin' ? 'tab-active' : ''}`}
+                      onClick={() => handlePlatformChange('linkedin')}
+                    >
+                      LinkedIn
+                    </a>
                   </div>
                   
-                  {/* Instagram Preview */}
-                  <div className="bg-white rounded-lg p-4 shadow-inner">
+                  {/* Platform Preview */}
+                  <div className="bg-white rounded-lg p-4 shadow-inner max-h-[500px] overflow-y-auto">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-8 h-8 rounded-full bg-primary"></div>
                       <div>
@@ -545,27 +644,62 @@ export default function ContentStudio() {
                         <p className="text-xs text-gray-500">Sponsored</p>
                       </div>
                     </div>
-                    <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
-                      <p className="text-sm text-base-content/70">Image Preview</p>
-                    </div>
-                    <p className="text-sm mb-2">✨ Elevate your summer style with our new collection!</p>
+                    {socialMediaData.loading ? (
+                      <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
+                        <div className="loading loading-spinner loading-lg"></div>
+                      </div>
+                    ) : generatedImageUrl && prompt ? (
+                      <img 
+                        src={generatedImageUrl} 
+                        alt="Generated post image" 
+                        className="w-full aspect-square object-cover rounded-lg mb-3"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'placeholder-image.jpg';
+                        }}
+                      />
+                    ) : (
+                      <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
+                        <p className="text-sm text-base-content/70">Enter prompt to generate image</p>
+                      </div>
+                    )}
+                    <p className="text-sm mb-2">{socialMediaData.preview || "✨ Your generated content will appear here"}</p>
                     <div className="flex gap-4 text-sm text-gray-500">
                       <span>❤️ Like</span>
                       <span>💬 Comment</span>
                       <span>🔄 Share</span>
                     </div>
-                  </div>
-
-                  <div className="alert alert-info">
-                    <div>
-                      <h3 className="font-bold">AI Format Optimization</h3>
-                      <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                        <li>Optimal image ratio: 1:1 for feed posts</li>
-                        <li>Recommended hashtags: #SummerStyle #Fashion</li>
-                        <li>Best posting time: Today at 6:00 PM EST</li>
-                      </ul>
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        className={`btn btn-primary ${socialMediaData.savingToCampaign ? 'loading' : ''}`}
+                        onClick={handleSaveToCampaign}
+                        disabled={!socialMediaData.preview || socialMediaData.savingToCampaign}
+                      >
+                        {socialMediaData.savingToCampaign ? 'Saving...' : 'Save to Campaign'}
+                      </button>
                     </div>
                   </div>
+
+                  {!socialMediaData.loading && !socialMediaData.error && (
+                    <div className="alert alert-info mt-4">
+                      <div>
+                        <h3 className="font-bold">AI Format Optimization</h3>
+                        <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                          <li>Optimal image ratio: 1:1 for {socialMediaData.platform} feed posts</li>
+                          <li>Recommended hashtags: {socialMediaData.preview ? '#YourBrand #ContentCreation' : 'Generate content to see recommendations'}</li>
+                          <li>Best posting time: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {socialMediaData.error && (
+                    <div className="alert alert-error mt-4">
+                      <div className="flex-1">
+                        <label>{socialMediaData.error}</label>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : contentType === 'video' ? (
                 <div className="bg-white rounded-lg p-4 shadow-inner">

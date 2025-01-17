@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { RiUserLine, RiBarChartBoxLine, RiRocketLine, RiMoneyDollarCircleLine, RiFlag2Line } from 'react-icons/ri';
+import { RiUserLine, RiBarChartBoxLine, RiRocketLine, RiMoneyDollarCircleLine, RiFlag2Line, RiMailOpenLine } from 'react-icons/ri';
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { 
@@ -10,6 +10,10 @@ import {
   BuildingOfficeIcon,
   XMarkIcon 
 } from '@heroicons/react/24/outline';
+import axios from 'axios';
+
+// Define API URL
+const API_URL = 'http://localhost:5005';
 
 export default function Dashboard() {
   const [goals, setGoals] = useState([
@@ -110,6 +114,9 @@ export default function Dashboard() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [emailAnalytics, setEmailAnalytics] = useState([]);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -143,6 +150,27 @@ export default function Dashboard() {
     };
 
     fetchData();
+  }, []);
+
+  const fetchEmailAnalytics = async () => {
+    try {
+      setLoadingAnalytics(true);
+      setAnalyticsError(null);
+      console.log('Fetching email analytics...');
+      const response = await axios.get(`${API_URL}/api/email/analytics`);
+      console.log('Raw analytics data:', JSON.stringify(response.data, null, 2));
+      setEmailAnalytics(response.data);
+    } catch (error) {
+      console.error('Error fetching email analytics:', error);
+      setAnalyticsError(error.message || 'Failed to load analytics');
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch analytics initially
+    fetchEmailAnalytics();
   }, []);
 
   const stats = [
@@ -418,6 +446,136 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Email Analytics */}
+      <div className="card bg-base-100 shadow-lg">
+        <div className="card-body">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="card-title">
+              <RiMailOpenLine className="text-primary" />
+              Email Campaign Analytics
+            </h2>
+            <button 
+              onClick={fetchEmailAnalytics}
+              className="btn btn-ghost btn-sm"
+              disabled={loadingAnalytics}
+            >
+              {loadingAnalytics ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                'Refresh'
+              )}
+            </button>
+          </div>
+
+          {loadingAnalytics ? (
+            <div className="flex justify-center items-center h-32">
+              <span className="loading loading-spinner loading-lg"></span>
+            </div>
+          ) : analyticsError ? (
+            <div className="alert alert-error">
+              <div className="flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <label>Error: {analyticsError}</label>
+              </div>
+              <div className="flex-none">
+                <button 
+                  className="btn btn-sm btn-ghost" 
+                  onClick={fetchEmailAnalytics}
+                  disabled={loadingAnalytics}
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : emailAnalytics.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No email campaigns found</p>
+              <p className="text-sm text-gray-400 mt-2">Send your first campaign to see analytics here</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="table w-full">
+                  <thead>
+                    <tr>
+                      <th>Campaign Subject</th>
+                      <th>Recipients</th>
+                      <th>Opens</th>
+                      <th>Open Rate</th>
+                      <th>Sent At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emailAnalytics.map((campaign) => {
+                      const openRate = ((campaign.opens / campaign.recipients.length) * 100).toFixed(1);
+                      
+                      // Format timestamps
+                      const formatTimestamp = (timestamp) => {
+                        if (!timestamp) return 'Never';
+                        try {
+                          return new Date(timestamp).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          });
+                        } catch (error) {
+                          console.error('Error formatting timestamp:', error, timestamp);
+                          return 'Invalid date';
+                        }
+                      };
+
+                      return (
+                        <tr key={campaign.id || campaign.campaignId}>
+                          <td>{campaign.subject}</td>
+                          <td>{campaign.recipients.length}</td>
+                          <td>{campaign.opens}</td>
+                          <td>{openRate}%</td>
+                          <td>{formatTimestamp(campaign.sentAt)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4">
+                <div className="stats shadow">
+                  <div className="stat">
+                    <div className="stat-title">Total Campaigns</div>
+                    <div className="stat-value">{emailAnalytics.length}</div>
+                  </div>
+                  
+                  <div className="stat">
+                    <div className="stat-title">Total Opens</div>
+                    <div className="stat-value">
+                      {emailAnalytics.reduce((sum, campaign) => sum + (campaign.opens || 0), 0)}
+                    </div>
+                  </div>
+                  
+                  <div className="stat">
+                    <div className="stat-title">Average Open Rate</div>
+                    <div className="stat-value">
+                      {emailAnalytics.length > 0
+                        ? (
+                            emailAnalytics.reduce((sum, campaign) => {
+                              return sum + ((campaign.opens || 0) / campaign.recipients.length);
+                            }, 0) / emailAnalytics.length * 100
+                          ).toFixed(1) + '%'
+                        : '0%'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* AI Insights */}
       <div className="card bg-base-100 shadow-lg">

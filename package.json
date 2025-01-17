@@ -29,12 +29,9 @@
     "react-firebase-hooks": "^5.1.1",
     "react-icons": "^5.4.0",
     "react-router-dom": "^7.1.0",
-<<<<<<< HEAD
     "resend": "^4.1.1",
+    "twitter-api-v2": "^1.19.0",
     "uuid": "^11.0.5"
-=======
-    "twitter-api-v2": "^1.19.0"
->>>>>>> fb68a58d69c140299b22dda5a9a59404e8ac0120
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

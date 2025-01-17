@@ -53,9 +53,8 @@ const AppContent = () => {
 
 export default function App() {
   return (
-    // <Router>
-    //   <AppContent />
-    // </Router>
-    <TrendingEvents/>
+    <Router>
+      <AppContent />
+    </Router>
   );
 }

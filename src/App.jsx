@@ -15,6 +15,7 @@ import About from './pages/About'
 import BusinessForm from './pages/BusinessForm'
 import Contact from './pages/Contact'
 import Features from './pages/Features'
+import TrendingEvents from './components/EventTrigger'
 
 const AppContent = () => {
   const location = useLocation();
@@ -52,8 +53,9 @@ const AppContent = () => {
 
 export default function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    // <Router>
+    //   <AppContent />
+    // </Router>
+    <TrendingEvents/>
   );
 }

@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react'; 
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -17,10 +18,12 @@ import Contact from './pages/Contact'
 import Features from './pages/Features'
 import TrendingEvents from './components/EventTrigger'
 import FineTunePage from './pages/FineTunePage'
+import ContentGenerator from './pages/ContentGenerator'
+import getTweetsData from './TwitterClient'
 
 const AppContent = () => {
   const location = useLocation();
-  const showSidebar = ['/dashboard', '/audience-insights', '/content-studio', '/campaign-builder', '/analytics', '/finetune'].includes(location.pathname);
+  const showSidebar = ['/dashboard', '/audience-insights', '/content-studio', '/campaign-builder', '/analytics', '/finetune', '/campaign-builder/template'].includes(location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-base-100 to-base-200">
@@ -36,6 +39,7 @@ const AppContent = () => {
             <Route path="/audience-insights" element={<AudienceInsights />} />
             <Route path="/content-studio" element={<ContentStudio />} />
             <Route path="/campaign-builder" element={<CampaignBuilder />} />
+            <Route path="/campaign-builder/template" element={<ContentGenerator />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/signin" element={<SignIn />} />

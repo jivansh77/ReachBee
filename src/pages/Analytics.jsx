@@ -3,27 +3,27 @@ import { RiBarChartBoxLine, RiPieChartLine, RiLineChartLine, RiUserSmileLine } f
 export default function Analytics() {
   const metrics = [
     {
-      name: 'Total Reach',
-      value: '2.4M',
-      change: '+15.3%',
+      name: 'Likes',
+      value: '1',
+      change: '+100%',
       icon: RiUserSmileLine,
     },
     {
-      name: 'Engagement Rate',
-      value: '4.8%',
-      change: '+2.1%',
+      name: 'Replies',
+      value: '1',
+      change: '+100%',
       icon: RiBarChartBoxLine,
     },
     {
-      name: 'Conversion Rate',
-      value: '3.2%',
-      change: '+0.8%',
+      name: 'Retweets',
+      value: '0',
+      change: '0%',
       icon: RiPieChartLine,
     },
     {
-      name: 'ROI',
-      value: '287%',
-      change: '+12.3%',
+      name: 'Follower Count',
+      value: '2',
+      change: '+100%',
       icon: RiLineChartLine,
     },
   ];
@@ -97,8 +97,60 @@ export default function Analytics() {
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
           <h2 className="card-title">Performance Overview</h2>
-          <div className="h-[300px] flex items-center justify-center bg-base-200 rounded-lg">
-            <p className="text-base-content/70">Interactive performance graph will be rendered here</p>
+          <p className="text-sm text-base-content/70 mt-1">Follower Count Growth</p>
+          <div className="h-[300px] bg-base-100 rounded-lg p-6">
+            <div className="relative w-full h-full">
+              {/* Y-axis */}
+              <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-sm text-base-content/70">
+                <div className="flex items-center h-6">
+                  <span className="mr-2">4.0%</span>
+                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
+                </div>
+                <div className="flex items-center h-6">
+                  <span className="mr-2">3.0%</span>
+                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
+                </div>
+                <div className="flex items-center h-6">
+                  <span className="mr-2">2.0%</span>
+                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
+                </div>
+                <div className="flex items-center h-6">
+                  <span className="mr-2">1.0%</span>
+                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
+                </div>
+                <div className="flex items-center h-6">
+                  <span className="mr-2">0.0%</span>
+                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
+                </div>
+              </div>
+
+              {/* Graph Content */}
+              <div className="pl-16 h-full">
+                <div className="relative h-full flex items-end justify-between">
+                  {/* Bars */}
+                  <div className="flex-1 flex justify-center">
+                    <div className="w-16 bg-primary rounded-t-lg" style={{ height: '0%' }}>
+                      <div className="text-xs text-center mt-2">16th</div>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex justify-center">
+                    <div className="w-16 bg-primary rounded-t-lg" style={{ height: '0%' }}>
+                      <div className="text-xs text-center mt-2">17th</div>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex justify-center">
+                    <div className="w-16 bg-primary rounded-t-lg" style={{ height: '50%' }}>
+                      <div className="text-xs text-center mt-2">18th</div>
+                    </div>
+                  </div>
+                  <div className="flex-1 flex justify-center">
+                    <div className="w-16 bg-base-300 rounded-t-lg" style={{ height: '0%' }}>
+                      <div className="text-xs text-center mt-2">19th</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -182,4 +234,4 @@ export default function Analytics() {
       </div>
     </div>
   );
-} 
+}

@@ -16,7 +16,7 @@ export default function Sidebar() {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: RiDashboardLine },
-    { name: 'Audience Insights', href: '/audience-insights', icon: RiGroupLine },
+    // { name: 'Audience Insights', href: '/audience-insights', icon: RiGroupLine },
     { name: 'Content Studio', href: '/content-studio', icon: RiPencilRulerLine },
     { name: 'Campaign Builder', href: '/campaign-builder', icon: RiRocketLine },
     { name: 'Analytics', href: '/analytics', icon: RiBarChartBoxLine },

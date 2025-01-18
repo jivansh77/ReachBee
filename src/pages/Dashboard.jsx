@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { RiUserLine, RiBarChartBoxLine, RiRocketLine, RiMoneyDollarCircleLine, RiFlag2Line, RiMailOpenLine, RiWhatsappLine } from 'react-icons/ri';
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import CustomizationForm from './CustomizationForm';
 import { 
   UsersIcon, 
   ChartBarIcon, 
@@ -477,69 +478,47 @@ export default function Dashboard() {
         </div>
       )}
 
-            {/* WhatsApp Messaging Card */}
-            <div className="card bg-base-100 shadow-lg">
+      {/* WhatsApp Integration Section */}
+      <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
-          <div className="flex items-center gap-2 mb-4">
+          <h2 className="card-title flex items-center gap-2">
             <RiWhatsappLine className="text-2xl text-green-500" />
-            <h2 className="card-title">WhatsApp Messaging</h2>
-          </div>
-
+            WhatsApp Integration
+          </h2>
           <form onSubmit={handleWhatsAppSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Phone Number</span>
-                </label>
-                <input
-                  type="tel"
-                  placeholder="Enter phone number with country code"
-                  className="input input-bordered"
-                  value={whatsappMessage.phoneNumber}
-                  onChange={(e) => setWhatsappMessage(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                  required
-                />
-                <label className="label">
-                  <span className="label-text-alt">Format: +1234567890</span>
-                </label>
-              </div>
-
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Message</span>
-                </label>
-                <textarea
-                  className="textarea textarea-bordered h-24"
-                  placeholder="Enter your message"
-                  value={whatsappMessage.message}
-                  onChange={(e) => setWhatsappMessage(prev => ({ ...prev, message: e.target.value }))}
-                  required
-                ></textarea>
-              </div>
+            <div>
+              <label className="label">Phone Number</label>
+              <input
+                type="text"
+                value={whatsappMessage.phoneNumber}
+                onChange={(e) => setWhatsappMessage(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                className="input input-bordered w-full"
+                placeholder="Enter phone number"
+                required
+              />
             </div>
-
+            <div>
+              <label className="label">Message</label>
+              <textarea
+                value={whatsappMessage.message}
+                onChange={(e) => setWhatsappMessage(prev => ({ ...prev, message: e.target.value }))}
+                className="textarea textarea-bordered w-full"
+                placeholder="Enter your message"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn btn-primary w-full"
+              disabled={sendingMessage}
+            >
+              {sendingMessage ? 'Sending...' : 'Send Message'}
+            </button>
             {messageStatus && (
               <div className={`alert ${messageStatus.type === 'success' ? 'alert-success' : 'alert-error'}`}>
-                <span>{messageStatus.message}</span>
+                {messageStatus.message}
               </div>
             )}
-
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={sendingMessage}
-              >
-                {sendingMessage ? (
-                  <>
-                    <span className="loading loading-spinner"></span>
-                    Sending...
-                  </>
-                ) : (
-                  'Send Message'
-                )}
-              </button>
-            </div>
           </form>
         </div>
       </div>
@@ -671,6 +650,17 @@ export default function Dashboard() {
               </div>
             </>
           )}
+        </div>
+      </div>
+
+      {/* Exit Intent Popup Customization */}
+      <div className="card bg-base-100 shadow-lg">
+        <div className="card-body">
+          <h2 className="card-title flex items-center gap-2">
+            <RiMailOpenLine className="text-2xl text-blue-500" />
+            Exit Intent Popup Customization
+          </h2>
+          <CustomizationForm />
         </div>
       </div>
 

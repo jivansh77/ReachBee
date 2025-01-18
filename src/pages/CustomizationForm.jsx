@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import ExitIntentPopup from './ExitIntentPopup';
 import Modal from './Modal';
 
@@ -8,20 +8,26 @@ const CustomizationForm = () => {
   const [backgroundColor, setBackgroundColor] = useState("bg-white");
   const [popupWidth, setPopupWidth] = useState("w-96");
   const [popupPosition, setPopupPosition] = useState("top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2");
-  const [showPreview, setShowPreview] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const handleGenerateCode = () => {
-    const generatedCode = `
+  const generateCode = useCallback(() => {
+    return `
 <!-- Add this to your HTML file -->
-<div id="exitIntentPopup" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-  <div class="${backgroundColor} ${popupWidth} p-6 rounded-lg shadow-lg ${popupPosition}">
-    <h2 class="text-2xl font-bold text-center text-gray-800">${title}</h2>
-    <p class="mt-4 text-center text-lg text-gray-600">${message}</p>
-    <div class="mt-6 flex justify-center">
-      <button onclick="closePopup()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-        Claim Your Offer
-      </button>
+<div id="exitIntentPopup" class="hidden fixed inset-0 z-50">
+  <div class="fixed inset-0 bg-black bg-opacity-50"></div>
+  <div class="absolute ${popupPosition}">
+    <div class="${backgroundColor} ${popupWidth} p-6 rounded-lg shadow-lg">
+      <div class="flex justify-between items-start mb-4">
+        <h2 class="text-2xl font-bold text-gray-800">${title}</h2>
+        <button onclick="closePopup()" class="text-gray-500 hover:text-gray-700 text-xl font-bold">×</button>
+      </div>
+      <p class="text-center text-lg text-gray-600 mb-6">${message}</p>
+      <div class="flex justify-center">
+        <button onclick="closePopup()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Claim Your Offer
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -45,9 +51,16 @@ const CustomizationForm = () => {
     document.getElementById('exitIntentPopup').classList.add('hidden');
   }
 </script>`;
+  }, [title, message, backgroundColor, popupWidth, popupPosition]);
 
+  const handleGenerateCode = () => {
+    setShowPreview(true);
     setShowModal(true);
-    return generatedCode;
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setShowPreview(false);
   };
 
   return (
@@ -136,24 +149,27 @@ const CustomizationForm = () => {
         <div className="h-full flex items-center justify-center">
           <div className="w-full">
             <h2 className="text-2xl font-bold mb-6 text-center">Live Preview</h2>
-            {showPreview && (
-              <ExitIntentPopup
-                title={title}
-                message={message}
-                backgroundColor={backgroundColor}
-                popupWidth={popupWidth}
-                popupPosition={popupPosition}
-              />
-            )}
           </div>
         </div>
       </div>
 
+      {/* Exit Intent Popup */}
+      {showPreview && (
+        <ExitIntentPopup
+          title={title}
+          message={message}
+          backgroundColor={backgroundColor}
+          popupWidth={popupWidth}
+          popupPosition={popupPosition}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
+
       {/* Modal for generated code */}
       {showModal && (
         <Modal 
-          code={handleGenerateCode()}
-          onClose={() => setShowModal(false)}
+          code={generateCode()}
+          onClose={handleCloseModal}
         />
       )}
     </div>

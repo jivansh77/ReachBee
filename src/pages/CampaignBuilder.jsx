@@ -68,6 +68,7 @@ export default function CampaignBuilder() {
                 id: data.id,
                 platform: data.platform,
                 content: data.content,
+                imageUrl: data.imageUrl,
                 createdAt: data.createdAt,
                 eventTitle: data.eventTitle
               });
@@ -77,6 +78,7 @@ export default function CampaignBuilder() {
                 id: data.id,
                 title: data.title,
                 script: data.script,
+                thumbnail: data.thumbnail,
                 createdAt: data.createdAt,
                 eventTitle: data.eventTitle
               });

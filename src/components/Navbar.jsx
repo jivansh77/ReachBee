@@ -1,12 +1,43 @@
 import { Link } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { useEffect } from 'react';
 
 export default function Navbar() {
   const [user] = useAuthState(auth);
 
+  useEffect(() => {
+    // Add Google Translate script
+    const addScript = () => {
+      const script = document.createElement('script');
+      script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      script.async = true;
+      document.body.appendChild(script);
+    };
+
+    // Modified initialization to prevent page shifting
+    window.googleTranslateElementInit = () => {
+      new window.google.translate.TranslateElement(
+        {
+          pageLanguage: 'en',
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          autoDisplay: false,
+          includedLanguages: 'hi,bn,te,ta,kn,gu,ml,mr,pa,ur' // Specify languages to show
+        },
+        'google_translate_element'
+      );
+    };
+
+    addScript();
+  }, []);
+
   const handleSignOut = () => {
     auth.signOut();
+  };
+
+  const toggleTranslateDropdown = () => {
+    const dropdown = document.getElementById('google_translate_element');
+    dropdown.classList.toggle('show-translate');
   };
 
   return (
@@ -61,6 +92,17 @@ export default function Navbar() {
           <li><Link to="/features" className="text-base font-semibold">Features</Link></li>
           <li><Link to="/contact" className="text-base font-semibold">Contact</Link></li>
         </ul>
+      </div>
+
+      {/* Add this before the navbar-end div */}
+      <div className="translate-container flex items-center justify-center px-2 mr-4">
+        <button
+          onClick={toggleTranslateDropdown}
+          className="text-2xl cursor-pointer hover:text-primary transition-colors duration-300"
+        >
+          <i className="fas fa-globe"></i>
+        </button>
+        <div id="google_translate_element" className="google-translate-dropdown"></div>
       </div>
 
       {/* Navbar End - Sign In/Out Button */}

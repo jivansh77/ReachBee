@@ -5,9 +5,15 @@ const { v4: uuidv4 } = require('uuid');
 const admin = require('firebase-admin');
 const path = require('path');
 
-// Load environment variables before creating clients
-dotenv.config();
+// Load environment variables from the correct path
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+// Verify API key is loaded
+if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not defined in environment variables');
+}
+
+// Initialize clients with API keys
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
 

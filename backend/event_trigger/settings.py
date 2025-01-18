@@ -11,11 +11,17 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 CORS_ALLOW_ALL_ORIGINS = True
-
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Add your frontend's URL here
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

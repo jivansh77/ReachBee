@@ -8,7 +8,6 @@ const CustomizationForm = () => {
   const [backgroundColor, setBackgroundColor] = useState("bg-white");
   const [popupWidth, setPopupWidth] = useState("w-96");
   const [popupPosition, setPopupPosition] = useState("top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2");
-  const [showPreview, setShowPreview] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   const generateCode = useCallback(() => {
@@ -53,20 +52,31 @@ const CustomizationForm = () => {
 </script>`;
   }, [title, message, backgroundColor, popupWidth, popupPosition]);
 
-  const handleGenerateCode = () => {
-    setShowPreview(true);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setShowPreview(false);
-  };
+  // Preview component that mimics the exit intent popup
+  const Preview = () => (
+    <div className="relative w-full h-full min-h-[600px] bg-gray-200 rounded-lg pointer-events-none">
+      <div className={`absolute ${popupPosition}`}>
+        <div className={`${backgroundColor} ${popupWidth} p-6 rounded-lg shadow-lg`}>
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+            <button className="text-gray-500 hover:text-gray-700 text-xl font-bold">×</button>
+          </div>
+          <p className="text-center text-lg text-gray-600 mb-6">{message}</p>
+          <div className="flex justify-center">
+            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Claim Your Offer
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Left Side: Customization Form */}
-      <div className="w-1/2 p-8">
+      <div className="w-1/2 p-8 relative z-10">
         <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
           <h2 className="text-2xl font-bold mb-6">Customize Your Exit-Intent Popup</h2>
           
@@ -136,7 +146,7 @@ const CustomizationForm = () => {
           </div>
 
           <button
-            onClick={handleGenerateCode}
+            onClick={() => setShowModal(true)}
             className="w-full mt-6 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
           >
             Generate Code
@@ -144,32 +154,17 @@ const CustomizationForm = () => {
         </div>
       </div>
 
-      {/* Right Side: Preview */}
+      {/* Right Side: Live Preview */}
       <div className="w-1/2 p-8 bg-gray-100">
-        <div className="h-full flex items-center justify-center">
-          <div className="w-full">
-            <h2 className="text-2xl font-bold mb-6 text-center">Live Preview</h2>
-          </div>
-        </div>
+        <h2 className="text-2xl font-bold mb-6 text-center">Live Preview</h2>
+        <Preview />
       </div>
-
-      {/* Exit Intent Popup */}
-      {showPreview && (
-        <ExitIntentPopup
-          title={title}
-          message={message}
-          backgroundColor={backgroundColor}
-          popupWidth={popupWidth}
-          popupPosition={popupPosition}
-          onClose={() => setShowPreview(false)}
-        />
-      )}
 
       {/* Modal for generated code */}
       {showModal && (
         <Modal 
           code={generateCode()}
-          onClose={handleCloseModal}
+          onClose={() => setShowModal(false)}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'; 
+import React, { useEffect, useState } from 'react'; 
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -19,6 +19,8 @@ import Features from './pages/Features'
 import TrendingEvents from './components/EventTrigger'
 import FineTunePage from './pages/FineTunePage'
 import getTweetsData from './TwitterClient'
+import ExitIntentPopup from './pages/ExitIntentPopup';
+import CustomizationForm from './pages/CustomizationForm';
 
 const AppContent = () => {
   const location = useLocation();
@@ -58,21 +60,11 @@ const AppContent = () => {
 
 export default function App() {
 
-  // useEffect(() => {
-  //   // Call the Twitter API function when the component mounts
-  //   getTweetsData();
-  // }, []);  // Empty dependency array means it will run only once when the component mounts
-
-  // return (
-  //   <div className="App">
-  //     <h1>My Twitter Feed</h1>
-  //     {/* You can display the data here or pass it to other components */}
-  //   </div>
-  // );
-
+ 
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    // <Router>
+    //   <AppContent />
+    // </Router>
+    <CustomizationForm/>
   );
 }

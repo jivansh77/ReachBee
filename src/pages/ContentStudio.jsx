@@ -33,12 +33,8 @@ export default function ContentStudio() {
 
   // Move the image generation hook inside the component
   const imagePrompt = prompt ? `Generate an image for ${socialMediaData.platform} post for best branding based on the following idea: ${prompt}` : '';
-  const generatedImageUrl = usePollinationsImage(imagePrompt, {
-    width: 512,
-    height: 512,
-    seed: Math.floor(Math.random() * 1000000), // Random seed for variety
-    model: 'flux',
-  });
+  const pollinationsUrl = imagePrompt ? `https://pollinations.ai/p/${encodeURIComponent(imagePrompt)}?width=512&height=512&model=flux&seed=${Math.floor(Math.random() * 1000000)}&nologo=true&enhance=false` : '';
+  const generatedImageUrl = imagePrompt ? `http://localhost:5005/api/content/proxy-image?url=${encodeURIComponent(pollinationsUrl)}` : '';
 
   useEffect(() => {
     if (prompt) {

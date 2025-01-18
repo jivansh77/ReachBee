@@ -1,4 +1,5 @@
 const contentService = require('../services/content.service');
+const axios = require('axios');
 
 const generateContent = async (req, res) => {
   try {
@@ -43,9 +44,33 @@ const getAllContent = async (req, res) => {
   }
 };
 
+const proxyPollinationsImage = async (req, res) => {
+    try {
+        const imageUrl = req.query.url;
+        
+        if (!imageUrl) {
+            return res.status(400).json({ error: 'Image URL is required' });
+        }
+
+        const response = await axios.get(imageUrl, {
+            responseType: 'arraybuffer'
+        });
+
+        // Set the content type to image
+        res.set('Content-Type', response.headers['content-type']);
+        
+        // Send the image data
+        res.send(response.data);
+    } catch (error) {
+        console.error('Error proxying Pollinations image:', error);
+        res.status(500).json({ error: 'Failed to fetch image' });
+    }
+};
+
 module.exports = {
   generateContent,
   generateVideoScript,
   saveContent,
-  getAllContent
+  getAllContent,
+  proxyPollinationsImage
 };

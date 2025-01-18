@@ -10,4 +10,7 @@ router.post('/video-script', contentController.generateVideoScript);
 router.post('/save', contentController.saveContent);
 router.get('/', contentController.getAllContent);
 
+// Image proxy route
+router.get('/proxy-image', contentController.proxyPollinationsImage);
+
 module.exports = router; 

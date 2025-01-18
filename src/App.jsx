@@ -62,9 +62,9 @@ const AppContent = () => {
 
 export default function App() {
   return (
-    // <Router>
-    //   <AppContent />
-    // </Router>
-    <CustomizationForm/>
+    <Router>
+      <AppContent />
+    </Router>
+    // <CustomizationForm/>
   );
 }

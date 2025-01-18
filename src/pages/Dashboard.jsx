@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { RiUserLine, RiBarChartBoxLine, RiRocketLine, RiMoneyDollarCircleLine, RiFlag2Line, RiMailOpenLine } from 'react-icons/ri';
+import { RiUserLine, RiBarChartBoxLine, RiRocketLine, RiMoneyDollarCircleLine, RiFlag2Line, RiMailOpenLine, RiWhatsappLine } from 'react-icons/ri';
 import { auth, db } from '../firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { 
@@ -117,6 +117,36 @@ export default function Dashboard() {
   const [emailAnalytics, setEmailAnalytics] = useState([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
   const [analyticsError, setAnalyticsError] = useState(null);
+  const [whatsappMessage, setWhatsappMessage] = useState({
+    phoneNumber: '',
+    message: ''
+  });
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageStatus, setMessageStatus] = useState(null);
+
+  const handleWhatsAppSubmit = async (e) => {
+    e.preventDefault();
+    setSendingMessage(true);
+    setMessageStatus(null);
+
+    try {
+      const response = await axios.post(`http://localhost:5006/api/whatsapp/send`, {
+        phone: whatsappMessage.phoneNumber,
+        message: whatsappMessage.message
+      });
+
+      if (response.data.status === 'success') {
+        setMessageStatus({ type: 'success', message: 'Message sent successfully!' });
+        setWhatsappMessage({ phoneNumber: '', message: '' });
+      } else {
+        setMessageStatus({ type: 'error', message: 'Failed to send message.' });
+      }
+    } catch (error) {
+      setMessageStatus({ type: 'error', message: error.message || 'Failed to send message' });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -446,6 +476,73 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+            {/* WhatsApp Messaging Card */}
+            <div className="card bg-base-100 shadow-lg">
+        <div className="card-body">
+          <div className="flex items-center gap-2 mb-4">
+            <RiWhatsappLine className="text-2xl text-green-500" />
+            <h2 className="card-title">WhatsApp Messaging</h2>
+          </div>
+
+          <form onSubmit={handleWhatsAppSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Phone Number</span>
+                </label>
+                <input
+                  type="tel"
+                  placeholder="Enter phone number with country code"
+                  className="input input-bordered"
+                  value={whatsappMessage.phoneNumber}
+                  onChange={(e) => setWhatsappMessage(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  required
+                />
+                <label className="label">
+                  <span className="label-text-alt">Format: +1234567890</span>
+                </label>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Message</span>
+                </label>
+                <textarea
+                  className="textarea textarea-bordered h-24"
+                  placeholder="Enter your message"
+                  value={whatsappMessage.message}
+                  onChange={(e) => setWhatsappMessage(prev => ({ ...prev, message: e.target.value }))}
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            {messageStatus && (
+              <div className={`alert ${messageStatus.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+                <span>{messageStatus.message}</span>
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={sendingMessage}
+              >
+                {sendingMessage ? (
+                  <>
+                    <span className="loading loading-spinner"></span>
+                    Sending...
+                  </>
+                ) : (
+                  'Send Message'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
 
       {/* Email Analytics */}
       <div className="card bg-base-100 shadow-lg">

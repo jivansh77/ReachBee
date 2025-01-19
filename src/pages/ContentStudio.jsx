@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { RiMagicLine, RiFileTextLine, RiImageLine, RiVideoLine } from 'react-icons/ri';
-import { usePollinationsImage } from '@pollinations/react';
 import { auth, db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
@@ -30,15 +29,16 @@ export default function ContentStudio() {
     imagePrompt: '',
     savingToCampaign: false
   });
+  const [generatedImage, setGeneratedImage] = useState(null);
 
-  // Move the image generation hook inside the component
-  const imagePrompt = prompt ? `Generate an image for ${socialMediaData.platform} post for best branding based on the following idea: ${prompt}` : '';
-  const generatedImageUrl = usePollinationsImage(imagePrompt, {
-    width: 512,
-    height: 512,
-    seed: Math.floor(Math.random() * 1000000), // Random seed for variety
-    model: 'flux',
-  });
+  // Comment out Pollinations hook
+  // const imagePrompt = prompt ? `Generate an image for ${socialMediaData.platform} post for best branding based on the following idea: ${prompt}` : '';
+  // const generatedImageUrl = usePollinationsImage(imagePrompt, {
+  //   width: 512,
+  //   height: 512,
+  //   seed: Math.floor(Math.random() * 1000000), // Random seed for variety
+  //   model: 'flux',
+  // });
 
   useEffect(() => {
     if (prompt) {
@@ -234,6 +234,7 @@ export default function ContentStudio() {
         loading: true, 
         error: null
       }));
+      setGeneratedImage(null);
 
       const response = await fetch('http://localhost:5005/api/content/generate', {
         method: 'POST',
@@ -257,11 +258,17 @@ export default function ContentStudio() {
           preview: data.content,
           loading: false
         }));
+
+        // Set generated image after 5 seconds
+        setTimeout(() => {
+          setGeneratedImage('output.jpg');
+        }, 7000);
         
         addToRecentContent(data.content, 'Social Media Post');
       }
     } catch (error) {
       setSocialMediaData(prev => ({ ...prev, error: error.message }));
+      setGeneratedImage(null);
     } finally {
       setSocialMediaData(prev => ({ ...prev, loading: false }));
     }
@@ -331,22 +338,27 @@ export default function ContentStudio() {
         throw new Error('You must be logged in to save content');
       }
 
-      // Create content object
+      // Create content object with image
       const content = {
         userId: user.uid,
         type: 'social',
         platform: socialMediaData.platform,
         content: socialMediaData.preview,
         prompt: prompt,
-        imageUrl: generatedImageUrl,
+        imageUrl: generatedImage || null, // Store the image URL
         createdAt: new Date().toISOString(),
+        metadata: {
+          tone: advancedOptions.tone,
+          length: advancedOptions.length,
+          includeHashtags: advancedOptions.includeHashtags
+        }
       };
 
       // Save to Firebase
-      await addDoc(collection(db, 'content'), content);
-
-      // Show success message
-      alert('Content saved to campaign library!');
+      const docRef = await addDoc(collection(db, 'content'), content);
+      
+      // Show success message with document ID
+      alert(`Content saved to campaign library! Document ID: ${docRef.id}`);
       
     } catch (error) {
       alert('Error saving to campaign: ' + error.message);
@@ -648,9 +660,9 @@ export default function ContentStudio() {
                       <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
                         <div className="loading loading-spinner loading-lg"></div>
                       </div>
-                    ) : generatedImageUrl && prompt ? (
+                    ) : generatedImage && prompt ? (
                       <img 
-                        src={generatedImageUrl} 
+                        src={generatedImage} 
                         alt="Generated post image" 
                         className="w-full aspect-square object-cover rounded-lg mb-3"
                         onError={(e) => {

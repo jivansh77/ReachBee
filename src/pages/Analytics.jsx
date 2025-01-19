@@ -1,32 +1,57 @@
 import { RiBarChartBoxLine, RiPieChartLine, RiLineChartLine, RiUserSmileLine } from 'react-icons/ri';
+import { useState } from 'react';
 
 export default function Analytics() {
+  const [selectedMetric, setSelectedMetric] = useState(3); // Default to Follower Count
+
   const metrics = [
     {
       name: 'Likes',
       value: '1',
       change: '+100%',
       icon: RiUserSmileLine,
+      history: [0, 0, 1, 0] // Last 4 days data
     },
     {
       name: 'Replies',
       value: '1',
       change: '+100%',
       icon: RiBarChartBoxLine,
+      history: [0, 0, 1, 0]
     },
     {
       name: 'Retweets',
       value: '0',
       change: '0%',
       icon: RiPieChartLine,
+      history: [0, 0, 0, 0]
     },
     {
       name: 'Follower Count',
       value: '2',
       change: '+100%',
       icon: RiLineChartLine,
+      history: [0, 0, 2, 0]
     },
   ];
+
+  // Calculate the maximum value for graph scaling
+  const maxValue = Math.max(
+    ...metrics.map(metric => Math.max(...metric.history))
+  );
+
+  // Get dates for the last 4 days
+  const getDates = () => {
+    const dates = [];
+    for (let i = 3; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      dates.push(date.getDate());
+    }
+    return dates;
+  };
+
+  const dates = getDates();
 
   const campaigns = [
     {
@@ -97,57 +122,54 @@ export default function Analytics() {
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
           <h2 className="card-title">Performance Overview</h2>
-          <p className="text-sm text-base-content/70 mt-1">Follower Count Growth</p>
+          <div className="flex gap-4 mt-2">
+            {metrics.map((metric, index) => (
+              <button
+                key={metric.name}
+                className={`btn btn-sm ${selectedMetric === index ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => setSelectedMetric(index)}
+              >
+                {metric.name}
+              </button>
+            ))}
+          </div>
+          <p className="text-sm text-base-content/70 mt-1">
+            {metrics[selectedMetric].name} Growth
+          </p>
           <div className="h-[300px] bg-base-100 rounded-lg p-6">
             <div className="relative w-full h-full">
               {/* Y-axis */}
               <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-sm text-base-content/70">
-                <div className="flex items-center h-6">
-                  <span className="mr-2">4.0%</span>
-                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
-                </div>
-                <div className="flex items-center h-6">
-                  <span className="mr-2">3.0%</span>
-                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
-                </div>
-                <div className="flex items-center h-6">
-                  <span className="mr-2">2.0%</span>
-                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
-                </div>
-                <div className="flex items-center h-6">
-                  <span className="mr-2">1.0%</span>
-                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
-                </div>
-                <div className="flex items-center h-6">
-                  <span className="mr-2">0.0%</span>
-                  <div className="w-full border-t border-base-300 absolute left-8" style={{ width: 'calc(100vw - 250px)' }} />
-                </div>
+                {[...Array(5)].map((_, index) => {
+                  const value = ((maxValue / 4) * (4 - index)).toFixed(1);
+                  return (
+                    <div key={index} className="flex items-center h-6">
+                      <span className="mr-2">{value}</span>
+                      <div 
+                        className="w-full border-t border-base-300 absolute left-8" 
+                        style={{ width: 'calc(100vw - 250px)' }} 
+                      />
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Graph Content */}
               <div className="pl-16 h-full">
                 <div className="relative h-full flex items-end justify-between">
                   {/* Bars */}
-                  <div className="flex-1 flex justify-center">
-                    <div className="w-16 bg-primary rounded-t-lg" style={{ height: '0%' }}>
-                      <div className="text-xs text-center mt-2">16th</div>
+                  {metrics[selectedMetric].history.map((value, index) => (
+                    <div key={index} className="flex-1 flex justify-center">
+                      <div 
+                        className={`w-16 ${value > 0 ? 'bg-primary' : 'bg-base-300'} rounded-t-lg transition-all duration-500`} 
+                        style={{ 
+                          height: `${maxValue > 0 ? (value / maxValue) * 100 : 0}%`
+                        }}
+                      >
+                        <div className="text-xs text-center mt-2">{dates[index]}</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex-1 flex justify-center">
-                    <div className="w-16 bg-primary rounded-t-lg" style={{ height: '0%' }}>
-                      <div className="text-xs text-center mt-2">17th</div>
-                    </div>
-                  </div>
-                  <div className="flex-1 flex justify-center">
-                    <div className="w-16 bg-primary rounded-t-lg" style={{ height: '50%' }}>
-                      <div className="text-xs text-center mt-2">18th</div>
-                    </div>
-                  </div>
-                  <div className="flex-1 flex justify-center">
-                    <div className="w-16 bg-base-300 rounded-t-lg" style={{ height: '0%' }}>
-                      <div className="text-xs text-center mt-2">19th</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>

@@ -51,7 +51,6 @@ const AppContent = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/features" element={<Features />} />
             <Route path="/finetune" element={<FineTunePage />} />
-            <Route path="/event-trigger" element={<TrendingEvents />} />
           </Routes>
         </main>
       </div>

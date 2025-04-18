@@ -10,7 +10,7 @@ class ContentService {
     try {
       // Implementation for general content generation
       const response = await hf.textGeneration({
-        model: "meta-llama/Llama-3.2-3B-Instruct",
+        model: "mistralai/Mistral-7B-Instruct-v0.3",
         inputs: `<s>[INST] Generate ${contentType} content for the following prompt:
 ${prompt} [/INST]</s>`,
         parameters: {
@@ -36,12 +36,46 @@ ${prompt} [/INST]</s>`,
     }
   }
 
+  async generateImage(prompt) {
+    try {
+      console.log('Generating image for prompt:', prompt);
+      
+      // Generate an image using FLUX.1-schnell model
+      const imageBlob = await hf.textToImage({
+        model: "black-forest-labs/FLUX.1-dev",
+        inputs: prompt,
+        parameters: {
+          negative_prompt: "blurry, distorted, low quality, duplicate",
+          guidance_scale: 7.5,
+          num_inference_steps: 30
+        }
+      });
+      
+      // Convert blob to base64 for sending to frontend
+      const arrayBuffer = await imageBlob.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64Image = `data:image/jpeg;base64,${buffer.toString('base64')}`;
+      
+      return {
+        imageData: base64Image,
+        metadata: {
+          model: "FLUX.1-dev",
+          prompt: prompt,
+          generatedAt: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Error generating image:', error);
+      throw new Error(`Failed to generate image: ${error.message}`);
+    }
+  }
+
   async generateVideoScript(prompt, advancedOptions = {}) {
     try {
       const { tone = 'professional', length = 'medium' } = advancedOptions;
       
       const response = await hf.textGeneration({
-        model: "meta-llama/Llama-3.2-3B-Instruct",
+        model: "mistralai/Mistral-7B-Instruct-v0.3",
         inputs: `<s>[INST] Write a professional video script that is ${length} in length and uses a ${tone} tone. The script should be for: ${prompt}
 
 Format the response as a proper video script with:

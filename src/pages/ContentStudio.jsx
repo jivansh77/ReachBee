@@ -24,10 +24,12 @@ export default function ContentStudio() {
   const [socialMediaData, setSocialMediaData] = useState({
     preview: null,
     loading: false,
+    imageLoading: false,
     error: null,
     platform: 'instagram',
     imagePrompt: '',
-    savingToCampaign: false
+    savingToCampaign: false,
+    imagePath: null,
   });
   const [generatedImage, setGeneratedImage] = useState(null);
 
@@ -231,8 +233,10 @@ export default function ContentStudio() {
     try {
       setSocialMediaData(prev => ({ 
         ...prev, 
-        loading: true, 
-        error: null
+        loading: true,
+        imageLoading: true,
+        error: null,
+        preview: null
       }));
       setGeneratedImage(null);
 
@@ -259,18 +263,79 @@ export default function ContentStudio() {
           loading: false
         }));
 
-        // Set generated image after 5 seconds
-        setTimeout(() => {
-          setGeneratedImage('output.jpg');
-        }, 7000);
+        // Generate image using HuggingFace
+        await generateImageWithHuggingFace();
         
         addToRecentContent(data.content, 'Social Media Post');
       }
     } catch (error) {
-      setSocialMediaData(prev => ({ ...prev, error: error.message }));
+      setSocialMediaData(prev => ({ 
+        ...prev, 
+        error: error.message,
+        loading: false,
+        imageLoading: false
+      }));
       setGeneratedImage(null);
     } finally {
       setSocialMediaData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // New function to generate image with HuggingFace
+  const generateImageWithHuggingFace = async () => {
+    try {
+      // Generate an image prompt based on the content
+      const imagePrompt = `Generate an image for ${socialMediaData.platform} post for best branding based on the following idea: ${prompt}`;
+      
+      const response = await fetch('http://localhost:5005/api/content/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: imagePrompt,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate image');
+      
+      const data = await response.json();
+      
+      // Use the data URL for display
+      setGeneratedImage(data.imageData);
+      
+      // Now also save to a local file via the Flask backend
+      try {
+        const saveResponse = await fetch('http://127.0.0.1:5000/api/save-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageData: data.imageData,
+            filename: `${Date.now()}_${socialMediaData.platform}_image.jpg`
+          }),
+        });
+        
+        if (saveResponse.ok) {
+          const saveData = await saveResponse.json();
+          // Update the image path for later use when saving to campaigns
+          setSocialMediaData(prev => ({
+            ...prev,
+            imagePath: saveData.imagePath
+          }));
+        }
+      } catch (saveError) {
+        console.error('Error saving image to local file:', saveError);
+        // We continue using the data URL if saving fails
+      }
+      
+    } catch (error) {
+      console.error('Error generating image:', error);
+      // Don't set error state here, just log it so text generation can still proceed
+    } finally {
+      // Mark image loading as complete regardless of success/failure
+      setSocialMediaData(prev => ({ ...prev, imageLoading: false }));
     }
   };
 
@@ -338,14 +403,17 @@ export default function ContentStudio() {
         throw new Error('You must be logged in to save content');
       }
 
-      // Create content object with image
+      // Store both the image data URL and the file path
       const content = {
         userId: user.uid,
         type: 'social',
         platform: socialMediaData.platform,
         content: socialMediaData.preview,
         prompt: prompt,
-        imageUrl: generatedImage || null, // Store the image URL
+        // For Firebase, store the data URL for display purposes
+        imageUrl: generatedImage, 
+        // For Twitter posting, store the file path
+        imagePath: socialMediaData.imagePath,
         createdAt: new Date().toISOString(),
         metadata: {
           tone: advancedOptions.tone,
@@ -656,26 +724,30 @@ export default function ContentStudio() {
                         <p className="text-xs text-gray-500">Sponsored</p>
                       </div>
                     </div>
-                    {socialMediaData.loading ? (
-                      <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
+                    {socialMediaData.loading || socialMediaData.imageLoading ? (
+                      <div className="aspect-square bg-base-200 rounded-lg mb-3 flex flex-col items-center justify-center">
                         <div className="loading loading-spinner loading-lg"></div>
+                        <p className="text-sm text-base-content/70 mt-2">
+                          {socialMediaData.loading ? "Generating content..." : "Generating image..."}
+                        </p>
                       </div>
-                    ) : generatedImage && prompt ? (
-                      <img 
-                        src={generatedImage} 
-                        alt="Generated post image" 
-                        className="w-full aspect-square object-cover rounded-lg mb-3"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'placeholder-image.jpg';
-                        }}
-                      />
+                    ) : generatedImage && socialMediaData.preview ? (
+                      <>
+                        <img 
+                          src={generatedImage} 
+                          alt="Generated post image" 
+                          className="w-full aspect-square object-cover rounded-lg mb-3"
+                        />
+                        <p className="text-sm mb-2">{socialMediaData.preview}</p>
+                      </>
                     ) : (
-                      <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
-                        <p className="text-sm text-base-content/70">Enter prompt to generate image</p>
-                      </div>
+                      <>
+                        <div className="aspect-square bg-base-200 rounded-lg mb-3 flex items-center justify-center">
+                          <p className="text-sm text-base-content/70">Enter prompt to generate content</p>
+                        </div>
+                        <p className="text-sm mb-2">✨ Your generated content will appear here</p>
+                      </>
                     )}
-                    <p className="text-sm mb-2">{socialMediaData.preview || "✨ Your generated content will appear here"}</p>
                     <div className="flex gap-4 text-sm text-gray-500">
                       <span>❤️ Like</span>
                       <span>💬 Comment</span>
@@ -685,7 +757,7 @@ export default function ContentStudio() {
                       <button
                         className={`btn btn-primary ${socialMediaData.savingToCampaign ? 'loading' : ''}`}
                         onClick={handleSaveToCampaign}
-                        disabled={!socialMediaData.preview || socialMediaData.savingToCampaign}
+                        disabled={!socialMediaData.preview || !generatedImage || socialMediaData.savingToCampaign || socialMediaData.loading || socialMediaData.imageLoading}
                       >
                         {socialMediaData.savingToCampaign ? 'Saving...' : 'Save to Campaign'}
                       </button>

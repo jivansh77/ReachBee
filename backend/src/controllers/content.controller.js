@@ -11,6 +11,23 @@ const generateContent = async (req, res) => {
   }
 };
 
+const generateImage = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+    
+    console.log('Generating image for prompt:', prompt);
+    const imageResult = await contentService.generateImage(prompt);
+    res.json(imageResult);
+  } catch (error) {
+    console.error('Error generating image:', error);
+    res.status(500).json({ error: `Failed to generate image: ${error.message}` });
+  }
+};
+
 const generateVideoScript = async (req, res) => {
   try {
     const { prompt, advancedOptions = {} } = req.body;
@@ -45,6 +62,7 @@ const getAllContent = async (req, res) => {
 
 module.exports = {
   generateContent,
+  generateImage,
   generateVideoScript,
   saveContent,
   getAllContent

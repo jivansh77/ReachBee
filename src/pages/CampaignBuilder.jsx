@@ -196,6 +196,11 @@ export default function CampaignBuilder() {
       // Save to Firebase
       const campaignRef = await addDoc(collection(db, 'campaigns'), campaign);
 
+      // Post to Twitter if selected
+      if (selectedPlatforms.includes('twitter')) {
+        await postToTwitter();
+      }
+
       // Reset form
       setCampaignData({
         name: '',
@@ -219,6 +224,129 @@ export default function CampaignBuilder() {
       setCampaignData(prev => ({ ...prev, error: error.message }));
     } finally {
       setCampaignData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Function to post content to Twitter
+  const postToTwitter = async () => {
+    try {
+      // Find selected social media content
+      const selectedSocialContents = [];
+      
+      if (selectedContent.social && selectedContent.social.length > 0) {
+        selectedContent.social.forEach(id => {
+          const content = contentLibrary.social.find(item => item.id === id);
+          if (content) {
+            selectedSocialContents.push(content);
+          }
+        });
+      }
+
+      if (selectedSocialContents.length === 0) {
+        throw new Error('No social content selected for Twitter campaign');
+      }
+
+      // For each selected content
+      for (const content of selectedSocialContents) {
+        // Only proceed if we have content text
+        if (content.content) {
+          // Truncate text to Twitter's 280 character limit
+          const tweetText = content.content.length > 280 
+            ? content.content.substring(0, 277) + '...' 
+            : content.content;
+            
+          console.log("Posting tweet with text:", tweetText);
+          
+          try {
+            // Use the exact same approach that worked with curl
+            const formData = new FormData();
+            formData.append('text', tweetText);
+            
+            // Check if we have an imagePath stored in Firebase
+            if (content.imagePath) {
+              console.log("Using stored imagePath:", content.imagePath);
+              
+              // Create a FormData object
+              const formData = new FormData();
+              formData.append('text', tweetText);
+              
+              // For the image, we need to get the full path to the file on the server
+              const baseDir = '/Users/mac/VSCode/Content/Content/src/postbackend/';
+              const fullImagePath = baseDir + content.imagePath;
+              
+              // Use the tweet-with-local-image endpoint which knows how to find the file
+              const response = await fetch('http://127.0.0.1:5000/api/tweet-with-local-image', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  text: tweetText,
+                  imagePath: fullImagePath,
+                }),
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                console.log("Tweet posted successfully using path:", data);
+              } else {
+                const errorData = await response.json();
+                console.error("Tweet posting failed with path:", errorData);
+                
+                // Fallback to using a real image file as FormData
+                console.log("Falling back to FormData approach with content image...");
+                await fallbackToFormData(tweetText, content);
+              }
+            } else {
+              // No imagePath, use form data approach with available image
+              await fallbackToFormData(tweetText, content);
+            }
+          } catch (error) {
+            console.error("Error posting tweet:", error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in Twitter posting process:', error);
+      throw new Error(`Twitter posting failed: ${error.message}`);
+    }
+  };
+  
+  // Helper function for form data fallback
+  const fallbackToFormData = async (tweetText, content) => {
+    try {
+      const formData = new FormData();
+      formData.append('text', tweetText);
+      
+      // Try to use a real image if we have one
+      if (content.imageUrl && content.imageUrl.startsWith('data:')) {
+        // Convert data URL to file
+        const response = await fetch(content.imageUrl);
+        const blob = await response.blob();
+        formData.append('image', new File([blob], 'campaign_image.jpg', {type: 'image/jpeg'}));
+      } else {
+        // Use a known good image from public folder
+        const publicImagePath = '/Users/mac/VSCode/Content/Content/public/photo2.png';
+        const imageResponse = await fetch(publicImagePath);
+        const imageBlob = await imageResponse.blob();
+        formData.append('image', new File([imageBlob], 'photo2.png', {type: 'image/png'}));
+      }
+      
+      // Send to the Twitter API
+      const response = await fetch('http://127.0.0.1:5000/api/tweet', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Tweet posted successfully with fallback method:", data);
+      } else {
+        const errorData = await response.json();
+        console.error("Tweet posting failed with fallback method:", errorData);
+      }
+    } catch (error) {
+      console.error("Error in fallback post method:", error);
     }
   };
 

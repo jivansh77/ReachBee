@@ -39,7 +39,7 @@ class EmailService {
   async generateEmailContent(prompt) {
     try {
       const response = await hf.textGeneration({
-        model: "meta-llama/Llama-3.2-3B-Instruct",
+        model: "mistralai/Mistral-7B-Instruct-v0.3",
         inputs: `<s>[INST] Write a professional marketing email with the following details:
 
 ${prompt}
@@ -141,7 +141,7 @@ Requirements:
     try {
       const { prompt, subject, campaignType } = campaignData;
       
-      // Generate email content using Llama 2
+      // Generate email content using mistral
       const emailContent = await this.generateEmailContent(
         `Create a ${campaignType} email with the following requirements: ${prompt}`
       );

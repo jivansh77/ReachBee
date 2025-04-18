@@ -78,7 +78,7 @@ const CustomizationForm = () => {
       {/* Left Side: Customization Form */}
       <div className="w-1/2 p-8 relative z-10">
         <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
-          <h2 className="text-2xl font-bold mb-6">Customize Your Exit-Intent Popup</h2>
+          <h2 className="text-xl font-bold mb-4">Customize Your Exit-Intent Popup</h2>
           
           <div className="space-y-4">
             <div>
@@ -134,7 +134,7 @@ const CustomizationForm = () => {
               <select
                 value={popupPosition}
                 onChange={(e) => setPopupPosition(e.target.value)}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 mb-5"
               >
                 <option value="top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">Center</option>
                 <option value="top-10 left-10">Top Left</option>
@@ -147,7 +147,7 @@ const CustomizationForm = () => {
 
           <button
             onClick={() => setShowModal(true)}
-            className="w-full mt-6 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+            className="btn btn-primary"
           >
             Generate Code
           </button>

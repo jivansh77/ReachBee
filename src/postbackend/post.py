@@ -23,10 +23,6 @@ API_SECRET = "5tZu3q4T60sRGSTD6kfdXKLyo9iRtE1mMhOt0gH5yk7C2SP0Na"
 ACCESS_TOKEN = "1880122259378962432-EcSUVQmc0MbSC4VGqZKKj0Z5ARTCZ0"
 ACCESS_TOKEN_SECRET = "PqKAQJ7j501GaaANFgw4lIa1tXg4Zca1PDdkm53dLX5bt"
 
-# Print the credentials we're using (masked for security)
-logger.info(f"Using Twitter API Key: {API_KEY[:5]}...{API_KEY[-5:]}")
-logger.info(f"Using Twitter Access Token: {ACCESS_TOKEN[:5]}...{ACCESS_TOKEN[-5:]}")
-
 # Configure upload folder
 UPLOAD_FOLDER = 'temp_uploads'
 if not os.path.exists(UPLOAD_FOLDER):
@@ -76,20 +72,6 @@ def post_tweet_with_image(text, image_path):
             text = text[:277] + "..."
             
         logger.debug(f"Attempting to post tweet with text: {text} and image: {image_path}")
-        logger.debug(f"Using credentials - API_KEY: {API_KEY[:5]}...{API_KEY[-5:]}, ACCESS_TOKEN: {ACCESS_TOKEN[:5]}...{ACCESS_TOKEN[-5:]}")
-        
-        # Check if the image file exists and is readable
-        if not os.path.exists(image_path):
-            logger.error(f"Image file does not exist: {image_path}")
-            return {"success": False, "error": f"Image file not found: {image_path}"}
-        
-        if not os.access(image_path, os.R_OK):
-            logger.error(f"Image file is not readable: {image_path}")
-            return {"success": False, "error": f"Image file not readable: {image_path}"}
-            
-        # Log image file size
-        file_size = os.path.getsize(image_path)
-        logger.debug(f"Image file size: {file_size} bytes")
         
         # Set up Twitter authentication
         auth = tweepy.OAuth1UserHandler(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
@@ -97,8 +79,8 @@ def post_tweet_with_image(text, image_path):
         
         # Verify credentials
         try:
-            me = api.verify_credentials()
-            logger.debug(f"Twitter credentials verified successfully for user: {me.screen_name}")
+            api.verify_credentials()
+            logger.debug("Twitter credentials verified successfully")
         except tweepy.TweepyException as e:
             error_message = str(e)
             logger.error(f"Twitter credentials verification failed: {error_message}")
@@ -106,7 +88,7 @@ def post_tweet_with_image(text, image_path):
             if "rate limit" in error_message.lower():
                 return {"success": False, "error": "Rate limit exceeded. Please try again later.", "rate_limited": True}
                 
-            return {"success": False, "error": f"Authentication failed: {error_message}", "code": getattr(e, 'api_code', None)}
+            return {"success": False, "error": f"Authentication failed: {error_message}"}
         
         # Create Tweepy v2 client
         client = tweepy.Client(
@@ -120,11 +102,6 @@ def post_tweet_with_image(text, image_path):
         # Upload media - this is the step that likely failed before
         try:
             logger.debug(f"Uploading media from path: {image_path}")
-            # Read image file for logging
-            with open(image_path, 'rb') as f:
-                first_bytes = f.read(20)
-                logger.debug(f"First bytes of image: {first_bytes.hex()}")
-                
             media = api.media_upload(filename=image_path)
             logger.debug(f"Media uploaded successfully with ID: {media.media_id}")
         except tweepy.TweepyException as media_error:
@@ -134,7 +111,7 @@ def post_tweet_with_image(text, image_path):
             if "rate limit" in error_message.lower():
                 return {"success": False, "error": "Rate limit exceeded during media upload. Please try again later.", "rate_limited": True}
                 
-            return {"success": False, "error": f"Image upload failed: {error_message}", "code": getattr(media_error, 'api_code', None)}
+            return {"success": False, "error": f"Image upload failed: {error_message}"}
         
         # Post tweet with the media
         try:
@@ -152,44 +129,11 @@ def post_tweet_with_image(text, image_path):
             if "rate limit" in error_message.lower():
                 return {"success": False, "error": "Rate limit exceeded during tweet creation. Please try again later.", "rate_limited": True}
                 
-            return {"success": False, "error": f"Tweet creation failed: {error_message}", "code": getattr(tweet_error, 'api_code', None)}
+            return {"success": False, "error": f"Tweet creation failed: {error_message}"}
 
     except Exception as e:
         logger.error(f"Unexpected error in post_tweet_with_image: {str(e)}")
         return {"success": False, "error": str(e)}
-
-# Debug route to test Twitter credentials
-@app.route('/api/twitter/test-credentials', methods=['GET'])
-def test_credentials():
-    try:
-        auth = tweepy.OAuth1UserHandler(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-        api = tweepy.API(auth)
-        
-        try:
-            me = api.verify_credentials()
-            return jsonify({
-                "success": True,
-                "user": me.screen_name,
-                "user_id": me.id,
-                "credentials": {
-                    "api_key": f"{API_KEY[:5]}...{API_KEY[-5:]}",
-                    "access_token": f"{ACCESS_TOKEN[:5]}...{ACCESS_TOKEN[-5:]}",
-                }
-            }), 200
-        except tweepy.TweepyException as e:
-            return jsonify({
-                "success": False,
-                "error": str(e),
-                "credentials": {
-                    "api_key": f"{API_KEY[:5]}...{API_KEY[-5:]}",
-                    "access_token": f"{ACCESS_TOKEN[:5]}...{ACCESS_TOKEN[-5:]}",
-                }
-            }), 401
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
 
 @app.route('/api/save-image', methods=['POST'])
 def save_image():
@@ -277,8 +221,7 @@ def create_tweet():
                 }), 429  # 429 Too Many Requests
             else:
                 return jsonify({
-                    "message": f"Error posting tweet: {result['error']}",
-                    "code": result.get("code")
+                    "message": f"Error posting tweet: {result['error']}"
                 }), 400
 
     except Exception as e:
@@ -317,10 +260,7 @@ def tweet_with_local_image():
             
             # Try to find the file relative to the current working directory
             current_dir = os.getcwd()
-            logger.debug(f"Current working directory: {current_dir}")
-            
             alternative_path = os.path.join(current_dir, image_path.lstrip('/'))
-            logger.debug(f"Trying alternative path: {alternative_path}")
             
             if os.path.isfile(alternative_path):
                 logger.debug(f"Found file at alternative path: {alternative_path}")
@@ -328,25 +268,14 @@ def tweet_with_local_image():
             else:
                 # Also try public directory
                 public_path = os.path.join(current_dir, 'public', os.path.basename(image_path))
-                logger.debug(f"Trying public directory path: {public_path}")
-                
                 if os.path.isfile(public_path):
                     logger.debug(f"Found file in public directory: {public_path}")
                     image_path = public_path
                 else:
-                    # One more try - look for the file in the temp_uploads folder
-                    temp_path = os.path.join(UPLOAD_FOLDER, os.path.basename(image_path))
-                    logger.debug(f"Trying temp_uploads path: {temp_path}")
-                    
-                    if os.path.isfile(temp_path):
-                        logger.debug(f"Found file in temp_uploads: {temp_path}")
-                        image_path = temp_path
-                    else:
-                        return jsonify({"message": f"Image file not found: {image_path}"}), 404
+                    return jsonify({"message": f"Image file not found: {image_path}"}), 404
         
         # Post the tweet
         result = post_tweet_with_image(text, image_path)
-        logger.debug(f"Post tweet result: {result}")
         
         if result["success"]:
             return jsonify({
@@ -361,8 +290,7 @@ def tweet_with_local_image():
                 }), 429  # 429 Too Many Requests
             else:
                 return jsonify({
-                    "message": f"Error posting tweet: {result['error']}",
-                    "code": result.get("code")
+                    "message": f"Error posting tweet: {result['error']}"
                 }), 400
                 
     except Exception as e:

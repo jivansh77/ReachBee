@@ -403,17 +403,25 @@ export default function ContentStudio() {
         throw new Error('You must be logged in to save content');
       }
 
-      // Store both the image data URL and the file path
+      // Get the image URL or path
+      let imageUrl = null;
+      
+      // Prefer the local file path if available
+      if (socialMediaData.imagePath) {
+        imageUrl = socialMediaData.imagePath;
+      } else if (generatedImage) {
+        // Fall back to data URL if no local path is available
+        imageUrl = generatedImage;
+      }
+
+      // Create content object with image
       const content = {
         userId: user.uid,
         type: 'social',
         platform: socialMediaData.platform,
         content: socialMediaData.preview,
         prompt: prompt,
-        // For Firebase, store the data URL for display purposes
-        imageUrl: generatedImage, 
-        // For Twitter posting, store the file path
-        imagePath: socialMediaData.imagePath,
+        imageUrl: imageUrl,
         createdAt: new Date().toISOString(),
         metadata: {
           tone: advancedOptions.tone,

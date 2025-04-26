@@ -32,6 +32,12 @@ export default function ContentStudio() {
     imagePath: null,
   });
   const [generatedImage, setGeneratedImage] = useState(null);
+  const [adCreativeData, setAdCreativeData] = useState({
+    videoUrl: null,
+    loading: false,
+    error: null,
+    savingToCampaign: false
+  });
 
   // Comment out Pollinations hook
   // const imagePrompt = prompt ? `Generate an image for ${socialMediaData.platform} post for best branding based on the following idea: ${prompt}` : '';
@@ -231,6 +237,11 @@ export default function ContentStudio() {
 
   const generateContent = async () => {
     try {
+      if (contentType === 'ad') {
+        await generateAdVideo();
+        return;
+      }
+
       setSocialMediaData(prev => ({ 
         ...prev, 
         loading: true,
@@ -440,6 +451,90 @@ export default function ContentStudio() {
       alert('Error saving to campaign: ' + error.message);
     } finally {
       setSocialMediaData(prev => ({ ...prev, savingToCampaign: false }));
+    }
+  };
+
+  // Add function to generate video using n8n workflow
+  const generateAdVideo = async () => {
+    try {
+      setAdCreativeData(prev => ({ 
+        ...prev, 
+        loading: true,
+        error: null,
+        videoUrl: null
+      }));
+      
+      // Open the n8n form in a popup window
+      const formUrl = 'https://jivansh.app.n8n.cloud/form/0020f266-854f-4e74-9658-71156538a583';
+      window.open(formUrl, '_blank', 'width=800,height=600');
+      
+      // Update state to show instructions
+      setAdCreativeData(prev => ({
+        ...prev,
+        loading: false,
+        error: "Form opened in a new window. After submitting and getting your video, paste the URL below."
+      }));
+      
+    } catch (error) {
+      setAdCreativeData(prev => ({ 
+        ...prev, 
+        error: error.message,
+        loading: false
+      }));
+    }
+  };
+
+  // Simplify the function to just handle manual URL input
+  const handleVideoUrlInput = (e) => {
+    const url = e.target.value.trim();
+    if (url) {
+      setAdCreativeData(prev => ({
+        ...prev,
+        videoUrl: url,
+        error: null
+      }));
+    }
+  };
+
+  // Add function to save ad creative to campaign
+  const saveAdCreativeToCampaign = async () => {
+    if (!prompt || !adCreativeData.videoUrl) {
+      alert('Please generate a video before saving to campaign');
+      return;
+    }
+
+    try {
+      setAdCreativeData(prev => ({ ...prev, savingToCampaign: true }));
+      
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('You must be logged in to save content');
+      }
+
+      // Create content object with video URL
+      const content = {
+        userId: user.uid,
+        type: 'ad',
+        content: prompt,
+        videoUrl: adCreativeData.videoUrl,
+        prompt: prompt,
+        createdAt: new Date().toISOString(),
+        metadata: {
+          tone: advancedOptions.tone,
+          length: advancedOptions.length
+        }
+      };
+
+      // Save to Firebase
+      const docRef = await addDoc(collection(db, 'content'), content);
+      
+      // Show success message with document ID
+      alert(`Ad Creative saved to campaign library! Document ID: ${docRef.id}`);
+      
+    } catch (error) {
+      alert('Error saving to campaign: ' + error.message);
+    } finally {
+      setAdCreativeData(prev => ({ ...prev, savingToCampaign: false }));
     }
   };
 
@@ -838,16 +933,80 @@ export default function ContentStudio() {
               ) : (
                 <div className="bg-white rounded-lg p-4 shadow-inner">
                   <h3 className="font-semibold mb-4">Ad Creative Preview</h3>
-                  <div className="alert alert-info">
-                    <div>
-                      <h3 className="font-bold">Ad Optimization Tips</h3>
-                      <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                        <li>Platform-specific dimensions</li>
-                        <li>CTA optimization</li>
-                        <li>Ad copy length guidelines</li>
-                      </ul>
+                  {adCreativeData.loading ? (
+                    <div className="aspect-video bg-base-200 rounded-lg mb-3 flex flex-col items-center justify-center">
+                      <div className="loading loading-spinner loading-lg"></div>
+                      <p className="text-sm text-base-content/70 mt-2">
+                        Opening form...
+                      </p>
                     </div>
-                  </div>
+                  ) : adCreativeData.videoUrl ? (
+                    <div className="space-y-4">
+                      <video 
+                        src={adCreativeData.videoUrl} 
+                        controls
+                        className="w-full rounded-lg"
+                      ></video>
+                      <div className="flex justify-end">
+                        <button
+                          className={`btn btn-primary ${adCreativeData.savingToCampaign ? 'loading' : ''}`}
+                          onClick={saveAdCreativeToCampaign}
+                          disabled={!adCreativeData.videoUrl || adCreativeData.savingToCampaign}
+                        >
+                          {adCreativeData.savingToCampaign ? 'Saving...' : 'Save to Campaign'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="alert alert-info">
+                        <div>
+                          <h3 className="font-bold">Ad Optimization Tips</h3>
+                          <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                            <li>Enter a prompt and click "Generate Content" to create a video ad</li>
+                            <li>Be descriptive in your prompt for better results</li>
+                            <li>Videos work best with clear, attention-grabbing concepts</li>
+                            <li>Aim for 15-30 second videos for optimal engagement</li>
+                          </ul>
+                        </div>
+                      </div>
+                      
+                      {/* Manual URL input field */}
+                      {adCreativeData.error && (
+                        <div className="form-control w-full mt-4">
+                          <label className="label">
+                            <span className="label-text">Paste Video URL</span>
+                          </label>
+                          <div className="flex gap-2">
+                            <input 
+                              type="text" 
+                              className="input input-bordered flex-1" 
+                              placeholder="Paste the video URL from the n8n workflow here"
+                              onChange={handleVideoUrlInput}
+                            />
+                            <button 
+                              className="btn btn-primary"
+                              onClick={() => {
+                                if (adCreativeData.videoUrl) {
+                                  addToRecentContent(prompt, 'Ad Creative Video');
+                                }
+                              }}
+                              disabled={!adCreativeData.videoUrl}
+                            >
+                              Apply
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {adCreativeData.error && (
+                    <div className="alert alert-info mt-4">
+                      <div className="flex-1">
+                        <label>{adCreativeData.error}</label>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

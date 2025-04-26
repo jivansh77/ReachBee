@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { FacebookAuthProvider, signInWithPopup, OAuthProvider } from 'firebase/auth';
-import { FaFacebook, FaInstagram } from 'react-icons/fa';
+import { FacebookAuthProvider, signInWithPopup } from 'firebase/auth';
+import { FaInstagram, FaFacebook } from 'react-icons/fa';
+import { FACEBOOK_PERMISSIONS } from '../facebookConfig';
    
 const BusinessForm = () => {
   const navigate = useNavigate();
@@ -23,11 +24,9 @@ const BusinessForm = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [socialMediaData, setSocialMediaData] = useState({
-    facebook: null,
     instagram: null
   });
   const [socialMediaLoading, setSocialMediaLoading] = useState({
-    facebook: false,
     instagram: false
   });
 
@@ -48,53 +47,26 @@ const BusinessForm = () => {
     }));
   };
 
-  const handleFacebookConnect = async () => {
-    setSocialMediaLoading(prev => ({ ...prev, facebook: true }));
+  const handleInstagramConnect = async () => {
+    setSocialMediaLoading(prev => ({ ...prev, instagram: true }));
     try {
+      // Instagram authentication is done through Facebook OAuth
       const provider = new FacebookAuthProvider();
-      provider.addScope('pages_show_list');
-      provider.addScope('pages_read_engagement');
-      provider.addScope('pages_manage_posts');
+      
+      // Add required scopes for Instagram access
+      FACEBOOK_PERMISSIONS.forEach(permission => {
+        provider.addScope(permission);
+      });
       
       const result = await signInWithPopup(auth, provider);
       const credential = FacebookAuthProvider.credentialFromResult(result);
       const token = credential.accessToken;
       
-      // Store the token and basic page data
-      const pageData = {
-        accessToken: token,
-        connectedAt: new Date().toISOString(),
-      };
-      
-      setSocialMediaData(prev => ({
-        ...prev,
-        facebook: pageData
-      }));
-      
-      // Update form data to include Facebook
-      if (!formData.socialMediaPresence.includes('facebook')) {
-        handleSocialMediaChange('facebook');
-      }
-    } catch (error) {
-      console.error('Facebook connection error:', error);
-      setError('Failed to connect to Facebook. Please try again.');
-    } finally {
-      setSocialMediaLoading(prev => ({ ...prev, facebook: false }));
-    }
-  };
-
-  const handleInstagramConnect = async () => {
-    setSocialMediaLoading(prev => ({ ...prev, instagram: true }));
-    try {
-      // Instagram Business Account connection requires Facebook authentication first
-      if (!socialMediaData.facebook) {
-        throw new Error('Please connect your Facebook account first');
-      }
-      
-      // Use the Facebook token to get Instagram Business Account
+      // Store the token and basic profile data
       const instagramData = {
+        accessToken: token,
+        userId: result.user.uid,
         connectedAt: new Date().toISOString(),
-        linkedToFacebook: true
       };
       
       setSocialMediaData(prev => ({
@@ -108,7 +80,7 @@ const BusinessForm = () => {
       }
     } catch (error) {
       console.error('Instagram connection error:', error);
-      setError(error.message || 'Failed to connect to Instagram. Please try again.');
+      setError('Failed to connect to Instagram. Please enable Facebook authentication in Firebase and try again.');
     } finally {
       setSocialMediaLoading(prev => ({ ...prev, instagram: false }));
     }
@@ -156,7 +128,6 @@ const BusinessForm = () => {
   ];
 
   const socialPlatforms = [
-    { id: 'facebook', name: 'Facebook' },
     { id: 'instagram', name: 'Instagram' },
     { id: 'twitter', name: 'Twitter' },
     { id: 'linkedin', name: 'LinkedIn' },
@@ -391,32 +362,16 @@ const BusinessForm = () => {
                   <div className="flex flex-col gap-4">
                     <button
                       type="button"
-                      onClick={handleFacebookConnect}
-                      disabled={socialMediaLoading.facebook || socialMediaData.facebook}
-                      className={`btn ${socialMediaData.facebook ? 'btn-success' : 'btn-primary'} gap-2`}
-                    >
-                      <FaFacebook className="w-5 h-5" />
-                      {socialMediaData.facebook 
-                        ? 'Facebook Connected' 
-                        : socialMediaLoading.facebook 
-                          ? 'Connecting to Facebook...' 
-                          : 'Connect Facebook Page'}
-                    </button>
-
-                    <button
-                      type="button"
                       onClick={handleInstagramConnect}
-                      disabled={socialMediaLoading.instagram || !socialMediaData.facebook || socialMediaData.instagram}
+                      disabled={socialMediaLoading.instagram || socialMediaData.instagram}
                       className={`btn ${socialMediaData.instagram ? 'btn-success' : 'btn-primary'} gap-2`}
                     >
                       <FaInstagram className="w-5 h-5" />
                       {socialMediaData.instagram 
                         ? 'Instagram Connected' 
-                        : !socialMediaData.facebook
-                          ? 'Connect Facebook First'
-                          : socialMediaLoading.instagram 
-                            ? 'Connecting to Instagram...' 
-                            : 'Connect Instagram Business'}
+                        : socialMediaLoading.instagram 
+                          ? 'Connecting to Instagram...' 
+                          : 'Connect Instagram Account'}
                     </button>
                   </div>
                 </div>

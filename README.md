@@ -2,11 +2,11 @@
 
 ## Overview
 
-This project is an AI-powered platform designed to automate content generation and streamline multi-platform marketing efforts. It leverages generative AI models to create engaging content and provides tools to manage and distribute this content across various social media channels.
+This project is an AI-powered platform designed to automate content generation and streamline multi-platform marketing efforts. It leverages generative AI models to create engaging content and provides tools to manage and distribute it across various social media channels.
 
 ## Features
 
-*   **AI Content Generation:** Utilizes state-of-the-art generative AI models (Google Gemini, Stable Diffusion via `diffusers`, and others via `transformers`) to automatically create text and image-based content.
+*   **AI Content Generation:** Utilizes state-of-the-art generative AI models (Google Gemini, Stable Diffusion via `diffusers`, and others via `transformers`) to create text and image-based content automatically.
 *   **Multi-Platform Integration:** Connects with social media platforms like Twitter (with potential for others like Facebook, etc.) to manage posts and campaigns.
 *   **Content Scheduling & Management:** Tools to schedule posts, manage generated content, and track performance (using Chart.js for visualization).
 *   **User Authentication:** Secure user login and management (via Firebase Authentication).
@@ -83,3 +83,4 @@ This project is an AI-powered platform designed to automate content generation a
 2.  Access the frontend application through the URL provided by Vite (e.g., `http://localhost:5173`) or the deployed Firebase Hosting URL.
 3.  Log in or sign up (if authentication is implemented).
 4.  Use the platform features to generate content, connect social accounts, and manage posts.
+ ![logo2](https://github.com/user-attachments/assets/714396b8-2767-4d48-8353-b7eb3b638251)
